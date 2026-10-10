@@ -1,0 +1,2224 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SVF · façade 3D</title>
+<meta name="description" content="Ton logo SVF devenu une tour en mur-rideau, en 3D : fais-la tourner, éclate le bâtiment étage par étage, démonte la façade couche par couche et passe en mode nuit.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="La façade SVF · pour toi, grand frère">
+<meta property="og:description" content="Ton logo SVF devenu une tour en mur-rideau, en 3D. Bâtiment éclaté, façade éclatée, mode nuit.">
+<meta property="og:image" content="https://abb130850-hue.github.io/maquettes/apercu-facade.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link rel="canonical" href="https://abb130850-hue.github.io/maquettes/facade.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* =====================================================================
+   MODIFIER LE CONTENU : les textes sont en bas, dans « const TEXTES »
+   (fr = français, en = anglais). La dédicace est dans « intro ».
+   ===================================================================== */
+:root {
+  --paper: #EDF0F2; --sheet: #FFFFFF; --ink: #17212B; --ink-2: #55606A; --rule: #D3D9DE;
+  --accent: #2A4F9E; --on-accent: #FFFFFF;
+  --svf: linear-gradient(90deg, #63C2A6 0%, #3B95DB 22%, #2A4F9E 42%, #E0245A 64%, #E8273D 80%, #F26A21 100%);
+  --stage-a: #DCE8EF; --stage-b: #F3F2ED; --stage-grid: rgba(23,33,43,.09);
+  --pin: #17212B; --hl: #2B66CC; --tint: #F3F5F6;
+  --font-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --font-ui: "Atkinson Hyperlegible", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0D1217; --sheet: #151C23; --ink: #E5EAEE; --ink-2: #9AA6B0; --rule: #25303A;
+    --accent: #7FA8FF; --on-accent: #0D1217;
+    --stage-a: #1B2733; --stage-b: #0D1218; --stage-grid: rgba(229,234,238,.07);
+    --pin: #E5EAEE; --hl: #74A2FF; --tint: #18212A; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0D1217; --sheet: #151C23; --ink: #E5EAEE; --ink-2: #9AA6B0; --rule: #25303A;
+  --accent: #7FA8FF; --on-accent: #0D1217;
+  --stage-a: #1B2733; --stage-b: #0D1218; --stage-grid: rgba(229,234,238,.07);
+  --pin: #E5EAEE; --hl: #74A2FF; --tint: #18212A; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16.5px; line-height: 1.55;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--hl); outline-offset: 2px; }
+.wrap { max-width: 1160px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 16px; }
+.top { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: end; justify-content: space-between; }
+.head { display: grid; gap: 8px; max-width: 72ch; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 0; }
+h1 { margin: 0; font-family: var(--font-display); font-stretch: 118%; font-weight: 800; font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1; text-wrap: balance; }
+.svf { background: var(--svf); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.bar { height: 6px; border-radius: 3px; background: var(--svf); max-width: 360px; }
+.lede { margin: 0; color: var(--ink-2); font-size: 1.06rem; }
+.lang { display: inline-flex; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--sheet); }
+.lang button { border: 0; background: transparent; padding: 8px 14px; font-weight: 700; cursor: pointer; font-family: var(--font-mono); font-size: 13px; }
+.lang button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 18px; font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-2); margin: 0; padding: 0; list-style: none; }
+.vp { position: relative; aspect-ratio: 16 / 9; max-height: 680px; width: 100%; border-radius: 14px; border: 1px solid var(--rule); overflow: hidden; background: var(--stage-b); }
+.vp canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tools { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.hint { position: absolute; left: 12px; bottom: 10px; margin: 0; font-family: var(--font-mono); font-size: 11px; color: var(--ink-2); background: color-mix(in srgb, var(--sheet) 82%, transparent); padding: 4px 8px; border-radius: 6px; pointer-events: none; }
+.ibtn { min-width: 36px; height: 36px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--rule); background: var(--sheet); cursor: pointer; font-weight: 700; font-size: .85rem; }
+.ibtn[aria-pressed="true"], .chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ctrls { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1.2fr); gap: 12px; }
+.grp { display: grid; gap: 6px; align-content: start; padding: 12px 14px; border: 1px solid var(--rule); border-radius: 12px; background: var(--sheet); }
+.grp-l { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); margin: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { padding: 7px 12px; border-radius: 8px; border: 1px solid var(--rule); background: var(--tint); cursor: pointer; font-size: .9rem; font-weight: 700; }
+.chip.tour { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }
+.act { min-height: 38px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--rule); background: var(--sheet); cursor: pointer; font-weight: 700; font-size: .9rem; }
+.act.main { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 9px; overflow: hidden; }
+.seg .chip { border: 0; border-radius: 0; }
+.grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.card { padding: 18px 20px; border-radius: 12px; background: var(--sheet); border: 1px solid var(--rule); display: grid; gap: 8px; align-content: start; }
+.card .k { margin: 0; font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.card h2 { margin: 0; font-family: var(--font-display); font-stretch: 112%; font-size: 1.4rem; line-height: 1.15; }
+.card p { margin: 0; }
+.card .sig { font-family: var(--font-display); font-stretch: 110%; font-weight: 700; color: var(--accent); }
+.list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.list button { width: 100%; text-align: left; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px; align-items: center; padding: 7px 10px; border-radius: 9px; border: 1px solid var(--rule); background: var(--sheet); cursor: pointer; font-size: .92rem; }
+.list button[aria-current="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.num { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--pin); color: var(--sheet); font-family: var(--font-mono); font-size: 11px; font-weight: 600; }
+.list .ex .num { background: var(--accent); color: var(--on-accent); }
+.pz-cap .sig { display: none; }
+.list .exb .num { background: var(--svf); color: #FFFFFF; text-shadow: 0 1px 1px rgba(0,0,0,.35); }
+.pal { display: grid; gap: 8px; }
+.palette { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.palette div { border-radius: 10px; overflow: hidden; border: 1px solid var(--rule); background: var(--sheet); }
+.palette i { display: block; height: 44px; }
+.palette code { display: block; padding: 6px 8px; font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-2); }
+.foot a.home { color: inherit; font-weight: 700; white-space: nowrap; }
+.foot { margin: 0; color: var(--ink-2); font-size: .9rem; border-top: 1px solid var(--rule); padding-top: 14px; }
+@media (max-width: 900px) { .ctrls { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 760px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .vp { aspect-ratio: 1 / 1.12; }
+  .list { grid-template-columns: minmax(0, 1fr); }
+  .palette { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="head">
+      <p class="eyebrow" id="t-eyebrow"></p>
+      <h1 id="t-title"></h1>
+      <div class="bar" aria-hidden="true"></div>
+      <p class="lede" id="t-lede"></p>
+    </div>
+    <div class="acts">
+      <button class="act main" id="b-present" type="button"></button>
+      <button class="act" id="b-share" type="button"></button>
+      <button class="act" id="b-dl" type="button" hidden></button>
+      <div class="lang" role="group" aria-label="Langue / Language">
+        <button type="button" data-lang="fr" aria-pressed="true">FR</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </div>
+  </header>
+  <ul class="facts" id="t-facts"></ul>
+
+  <div class="vp">
+    <canvas id="v3d" role="img"></canvas>
+    <div class="tools">
+      <button class="ibtn" id="b-spin" type="button" aria-pressed="false"></button>
+      <button class="ibtn" id="b-out" type="button" aria-label="−" data-pz="wide">−</button>
+      <button class="ibtn" id="b-in" type="button" aria-label="+" data-pz="wide">+</button>
+      <button class="ibtn" id="b-explore" type="button" aria-pressed="false" data-pz="off"></button>
+    </div>
+    <p class="hint" id="t-hint"></p>
+  </div>
+
+  <div class="ctrls">
+    <div class="grp"><p class="grp-l" id="l-views"></p><div class="row" id="views"></div></div>
+    <div class="grp"><p class="grp-l" id="l-tod"></p><div class="row" id="tod"></div></div>
+    <div class="grp"><p class="grp-l" id="l-show"></p><div class="row" id="show"></div></div>
+  </div>
+
+  <div class="grid">
+    <article class="card" id="card" aria-live="polite"></article>
+    <ul class="list" id="list"></ul>
+  </div>
+
+  <div class="pal">
+    <p class="grp-l" id="t-pal"></p>
+    <div class="palette" id="palette"></div>
+  </div>
+
+  <p class="foot"><span id="t-foot"></span> <a class="home" id="t-home" href="./"></a></p>
+</div>
+
+<script>
+/* Moteur 3D v2, canvas 2D, sans dépendance.
+   Ajouts : moments de la journée, niveaux de détail, vue en coupe avec sous-sol,
+   objets animés, points (fruits, lampes), halos lumineux, boussole et échelle. */
+(function (root) {
+  'use strict';
+  var PI = Math.PI;
+
+  /* ---------- maths ---------- */
+  function sub(a, b) { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
+  function dot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+  function nrm(a) { var l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; }
+  function hex(h) {
+    h = String(h).replace('#', '');
+    if (h.length === 3) h = h.replace(/(.)/g, '$1$1');
+    var n = parseInt(h, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function mix(a, b, t) {
+    a = Array.isArray(a) ? a : hex(a); b = Array.isArray(b) ? b : hex(b);
+    return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+  }
+  function grad(stops, t) {
+    t = Math.max(0, Math.min(1, t));
+    var n = stops.length - 1, i = Math.min(n - 1, Math.floor(t * n)), u = t * n - i;
+    return mix(stops[i], stops[i + 1], u);
+  }
+  function newell(pts) {
+    var x = 0, y = 0, z = 0;
+    for (var i = 0; i < pts.length; i++) {
+      var a = pts[i], b = pts[(i + 1) % pts.length];
+      x += (a[1] - b[1]) * (a[2] + b[2]); y += (a[2] - b[2]) * (a[0] + b[0]); z += (a[0] - b[0]) * (a[1] + b[1]);
+    }
+    return nrm([x, y, z]);
+  }
+  function cen(pts) {
+    var x = 0, y = 0, z = 0;
+    for (var i = 0; i < pts.length; i++) { x += pts[i][0]; y += pts[i][1]; z += pts[i][2]; }
+    return [x / pts.length, y / pts.length, z / pts.length];
+  }
+  function rng(seed) {
+    var s = seed % 2147483647; if (s <= 0) s += 2147483646;
+    return function () { s = s * 16807 % 2147483647; return (s - 1) / 2147483646; };
+  }
+  function ease(u) { return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2; }
+  function wrapAngle(a) { while (a > PI) a -= 2 * PI; while (a < -PI) a += 2 * PI; return a; }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function rotY(q, c, s) { return [q[0] * c + q[2] * s, q[1], -q[0] * s + q[2] * c]; }
+
+  /* ---------- primitives ---------- */
+  function P(pts, col, o) {
+    var p = {
+      pts: pts, rgb: Array.isArray(col) ? col : hex(col), a: 1, layer: 1, two: false, line: false,
+      edge: 0, obj: null, grp: null, ver: null, shadow: true, flat: false, bias: 0, zi: 0,
+      lw: 1, lwm: 0, dash: null, tc: null, tcs: null, parent: null,
+      dot: 0, lod: null, cut: null, under: false, emit: null, glow: 0, tf: null, seam: false, holes: null,
+      ec: null, edgem: 0, sonly: false
+    };
+    if (o) for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) p[k] = o[k];
+    if (p.emit && !Array.isArray(p.emit)) p.emit = hex(p.emit);
+    if (p.ec && !Array.isArray(p.ec)) p.ec = hex(p.ec);
+    p.c = cen(pts);
+    if (!p.line && !p.dot) p.n = newell(pts);
+    return p;
+  }
+  function out(p, c) {
+    if (dot(p.n, sub(p.c, c)) < 0) { p.pts.reverse(); p.n = [-p.n[0], -p.n[1], -p.n[2]]; }
+    return p;
+  }
+  function copyPts(a) { return a.map(function (q) { return [q[0], q[1], q[2]]; }); }
+  function rect(x0, z0, x1, z1) { return [[x0, z0], [x1, z0], [x1, z1], [x0, z1]]; }
+
+  function B() { this.list = []; this.pins = []; this.zi = 0; this.def = null; }
+  B.prototype.with = function (o) { this.def = o; return this; };
+  B.prototype.opt = function (o) {
+    if (!this.def) return o || {};
+    var r = {}, k; for (k in this.def) r[k] = this.def[k];
+    if (o) for (k in o) r[k] = o[k];
+    return r;
+  };
+  B.prototype.add = function (p) { this.list.push(p); return p; };
+  B.prototype.ground = function (xz, col, o, y) {
+    y = y || 0;
+    var p = P(xz.map(function (q) { return [q[0], y, q[1]]; }), col, Object.assign({ layer: 0, flat: true, shadow: false, zi: this.zi++ }, this.opt(o)));
+    if (p.n[1] < 0) { p.pts.reverse(); p.n = [-p.n[0], -p.n[1], -p.n[2]]; }
+    return this.add(p);
+  };
+  B.prototype.gline = function (a, b, col, o) {
+    return this.add(P([[a[0], 0.03, a[1]], [b[0], 0.03, b[1]]], col, Object.assign({ layer: 0, line: true, shadow: false, zi: this.zi++ }, this.opt(o))));
+  };
+  B.prototype.line = function (a, b, col, o) { return this.add(P([a, b], col, Object.assign({ line: true, shadow: false }, this.opt(o)))); };
+  B.prototype.dotAt = function (q, rad, col, o) { return this.add(P([q], col, Object.assign({ dot: rad, shadow: false }, this.opt(o)))); };
+  B.prototype.quad = function (pts, col, o) { return this.add(P(pts, col, this.opt(o))); };
+  B.prototype.box = function (x0, y0, z0, x1, y1, z1, col, o, top, bottom) {
+    var v = [[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]];
+    var F = [[0, 1, 2, 3], [5, 4, 7, 6], [4, 0, 3, 7], [1, 5, 6, 2], [3, 2, 6, 7]];
+    if (bottom) F.push([4, 5, 1, 0]);
+    var c = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2], res = [], oo = this.opt(o);
+    for (var i = 0; i < F.length; i++) {
+      var pts = F[i].map(function (k) { return v[k].slice(); });
+      res.push(this.add(out(P(pts, (i === 4 && top) ? top : col, oo), c)));
+    }
+    return res;
+  };
+  B.prototype.solid = function (faces, col, o, c) {
+    var self = this, oo = this.opt(o);
+    return faces.map(function (pts) { return self.add(out(P(copyPts(pts), col, oo), c)); });
+  };
+  B.prototype.decal = function (parent, pts, col, o) {
+    var p = P(pts, col, Object.assign({ parent: parent, obj: parent.obj, grp: parent.grp, ver: parent.ver, cut: parent.cut, tf: parent.tf, shadow: false }, this.opt(o)));
+    p.n = parent.n.slice();
+    return this.add(p);
+  };
+  B.prototype.cyl = function (cx, cz, rad, y0, y1, n, col, o, topCol, rTop) {
+    var c = [cx, (y0 + y1) / 2, cz], a0 = [], a1 = [], i, res = [], oo = this.opt(o), rt = rTop == null ? rad : rTop;
+    for (i = 0; i < n; i++) {
+      var a = i / n * PI * 2;
+      a0.push([cx + Math.cos(a) * rad, y0, cz + Math.sin(a) * rad]);
+      a1.push([cx + Math.cos(a) * rt, y1, cz + Math.sin(a) * rt]);
+    }
+    for (i = 0; i < n; i++) {
+      var j = (i + 1) % n;
+      res.push(this.add(out(P([a0[i].slice(), a0[j].slice(), a1[j].slice(), a1[i].slice()], col, oo), c)));
+    }
+    res.push(this.add(out(P(copyPts(a1), topCol || col, oo), c)));
+    return res;
+  };
+  /* cylindre couché, axe z (roues) */
+  B.prototype.wheel = function (cx, cy, z0, z1, rad, n, col, o) {
+    var c = [cx, cy, (z0 + z1) / 2], f = [], b = [], i, oo = this.opt(o);
+    for (i = 0; i < n; i++) { var a = i / n * PI * 2; f.push([cx + Math.cos(a) * rad, cy + Math.sin(a) * rad, z1]); b.push([cx + Math.cos(a) * rad, cy + Math.sin(a) * rad, z0]); }
+    this.add(out(P(copyPts(f), col, oo), c)); this.add(out(P(copyPts(b), col, oo), c));
+    for (i = 0; i < n; i++) { var j = (i + 1) % n; this.add(out(P([b[i].slice(), b[j].slice(), f[j].slice(), f[i].slice()], col, oo), c)); }
+  };
+  /* forme 2D (contour + trous) extrudée ; map(x, y, z) place les coordonnées dans la scène */
+  B.prototype.shape = function (outer, holes, z0, z1, colF, colS, o, map) {
+    var oo = this.opt(o), self = this;
+    map = map || function (x, y, z) { return [x, y, z]; };
+    function L(pts, z) { return pts.map(function (q) { return map(q[0], q[1], z); }); }
+    var f = P(L(outer, z1), colF, oo);
+    if (holes && holes.length) f.holes = holes.map(function (h) { return L(h, z1); });
+    self.add(f);
+    var bk = P(L(outer, z0).reverse(), colF, oo);
+    if (holes && holes.length) bk.holes = holes.map(function (h) { return L(h, z0).reverse(); });
+    self.add(bk);
+    [outer].concat(holes || []).forEach(function (ring) {
+      for (var i = 0; i < ring.length; i++) {
+        var a = ring[i], b = ring[(i + 1) % ring.length];
+        self.add(P([map(a[0], a[1], z0), map(b[0], b[1], z0), map(b[0], b[1], z1), map(a[0], a[1], z1)], colS, oo));
+      }
+    });
+  };
+  B.prototype.bipyr = function (x, z, y0, y1, ym, rad, n, col, o, rot) {
+    var ring = [], i, top = [x, y1, z], bot = [x, y0, z];
+    rot = rot || 0;
+    for (i = 0; i < n; i++) { var a = i / n * PI * 2 + rot; ring.push([x + Math.cos(a) * rad, ym, z + Math.sin(a) * rad]); }
+    var faces = [];
+    for (i = 0; i < n; i++) { var j = (i + 1) % n; faces.push([ring[i], ring[j], top]); faces.push([ring[j], ring[i], bot]); }
+    return this.solid(faces, col, o, [x, ym, z]);
+  };
+  B.prototype.tree = function (x, z, s, o) {
+    o = o || {};
+    this.box(x - 0.22 * s, 0, z - 0.22 * s, x + 0.22 * s, 2.4 * s, z + 0.22 * s, '#7A5A3E', { obj: o.obj || null });
+    this.bipyr(x, z, 2.3 * s, 7.4 * s, 4.5 * s, 3.1 * s, 7, o.crown || '#4E7F46', { obj: o.obj || null }, 0.3);
+  };
+  B.prototype.person = function (x, z, h, col, o) {
+    this.box(x - 0.22, 0, z - 0.14, x + 0.22, h * 0.82, z + 0.14, col, o);
+    this.box(x - 0.13, h * 0.84, z - 0.12, x + 0.13, h, z + 0.12, col, o);
+  };
+
+  /* =====================================================================
+     VISIONNEUSE
+     ===================================================================== */
+  function Viewer(canvas, opts) {
+    opts = opts || {};
+    var ctx = canvas.getContext('2d');
+    var W = 1, H = 1, DPR = 1, F = 1, NEAR = 0.6, OX = 1, OY = 1;
+    var cam = { yaw: 0, pitch: 0.5, dist: 100, tx: 0, ty: 0, tz: 0 };
+    var sc = null, polys = [], pins = [], mode = { ver: 'apres', tod: 'jour', coupe: false, anim: false };
+    var chans = {}, chanF = {}, auto = false, tw = null, sel = null, hov = null;
+    var ins = { l: 0, r: 0, t: 0, b: 0 }, lastTap = null;
+    function chan(n) { n = n || 'main'; return chans[n] || (chans[n] = { v: 0, to: 0 }); }
+    var drawn = [], pinPos = [], dirty = true, raf = 0, last = 0, visible = true, explore = false, clock = 0;
+    var colors = {}, handlers = {};
+    var reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    var shadowCv = document.createElement('canvas'), sctx = shadowCv.getContext('2d');
+    var self = this, stars = null;
+
+    function emit(name, a) { (handlers[name] || []).forEach(function (fn) { fn(a); }); }
+    function readColors() {
+      var cs = getComputedStyle(canvas);
+      function g(n, d) { var v = cs.getPropertyValue(n).trim(); return v || d; }
+      colors.a = g('--stage-a', '#F6F9F9'); colors.b = g('--stage-b', '#E2E9E9');
+      colors.grid = g('--stage-grid', 'rgba(20,32,42,0.08)');
+      colors.ink = g('--ink', '#14202A'); colors.sheet = g('--sheet', '#FFFFFF');
+      colors.pin = g('--pin', '#14202A'); colors.hl = g('--hl', '#2D6BD3');
+      colors.font = g('--font-ui', 'system-ui, sans-serif');
+      colors.rgb = {
+        logoInk: hex(g('--logo-ink', '#1F2B33')), logoInkS: hex(g('--logo-ink-s', '#121A1F')),
+        podium: hex(g('--podium', '#F4F5F2')), podiumS: hex(g('--podium-s', '#C9CFCF'))
+      };
+      dirty = true;
+    }
+    function resize() {
+      var r = canvas.getBoundingClientRect();
+      DPR = Math.min(window.devicePixelRatio || 1, 2);
+      W = Math.max(2, Math.round(r.width * DPR)); H = Math.max(2, Math.round(r.height * DPR));
+      if (canvas.width !== W) canvas.width = W;
+      if (canvas.height !== H) canvas.height = H;
+      stars = null; dirty = true; kick();
+    }
+    function tod() { return (sc && sc.tods && sc.tods[mode.tod]) || null; }
+    function basis() { return { cy: Math.cos(cam.yaw), sy: Math.sin(cam.yaw), cp: Math.cos(cam.pitch), sp: Math.sin(cam.pitch) }; }
+    function toCam(Bs, q) {
+      var x = q[0] - cam.tx, y = q[1] - cam.ty, z = q[2] - cam.tz;
+      var X = x * Bs.cy - z * Bs.sy, Z1 = x * Bs.sy + z * Bs.cy;
+      var Y = y * Bs.cp - Z1 * Bs.sp, Z = y * Bs.sp + Z1 * Bs.cp;
+      return [X, Y, cam.dist - Z];
+    }
+    function scr(c) { return [OX + F * c[0] / c[2], OY - F * c[1] / c[2], c[2]]; }
+    function frame() {
+      var fw = Math.max(60, W - (ins.l + ins.r) * DPR), fh = Math.max(60, H - (ins.t + ins.b) * DPR);
+      F = Math.min(fw * 1.15, fh * 1.55);
+      OX = ins.l * DPR + fw / 2; OY = ins.t * DPR + fh * 0.53;
+    }
+    function project(Bs, q) { return scr(toCam(Bs, q)); }
+    /* décalage « éclaté » d'un groupe : sc.explode[grp] = [x, y, z] (canal principal) ou { o: [x, y, z], ch: 'nom', s: 0..1 }
+       s décale le départ du groupe dans le mouvement (effet « étage par étage ») */
+    function expl(grp) {
+      var ex = grp && sc.explode && sc.explode[grp];
+      if (!ex) return null;
+      var o = ex.o || ex, cn = ex.ch || 'main', f;
+      if (ex.s != null && chans[cn]) {
+        var Wd = ex.w || 0.6, u = (chans[cn].v - ex.s * Wd) / (1 - Wd);
+        f = ease(u < 0 ? 0 : u > 1 ? 1 : u);
+      } else f = chanF[cn] || 0;
+      return f ? [o[0] * f, o[1] * f, o[2] * f] : null;
+    }
+    /* position monde d'un point : décalage éclaté + transformation d'objet animé */
+    function world(q, p, off) {
+      if (off) q = [q[0] + off[0], q[1] + off[1], q[2] + off[2]];
+      if (p.tf && sc.tfs && sc.tfs[p.tf]) {
+        var t = sc.tfs[p.tf], c = Math.cos(t.yaw || 0), s = Math.sin(t.yaw || 0), r = rotY(q, c, s);
+        q = [r[0] + t.x, r[1] + (t.y || 0), r[2] + t.z];
+      }
+      return q;
+    }
+    function projPoly(Bs, pts, p, isLine) {
+      var cs = new Array(pts.length), behind = 0, i, off = p && p.grp ? expl(p.grp) : null;
+      for (i = 0; i < pts.length; i++) {
+        cs[i] = toCam(Bs, p ? world(pts[i], p, off) : pts[i]);
+        if (cs[i][2] < NEAR) behind++;
+      }
+      if (behind === pts.length) return null;
+      if (!behind) return cs.map(scr);
+      function cut(a, b) { var t = (NEAR - a[2]) / (b[2] - a[2]); return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, NEAR]; }
+      if (isLine) {
+        var a = cs[0], b2 = cs[1];
+        return [scr(a[2] < NEAR ? cut(a, b2) : a), scr(b2[2] < NEAR ? cut(b2, a) : b2)];
+      }
+      var outp = [], n = cs.length;
+      for (i = 0; i < n; i++) {
+        var A = cs[i], Bp = cs[(i + 1) % n], ain = A[2] >= NEAR, bin = Bp[2] >= NEAR;
+        if (ain && bin) outp.push(Bp);
+        else if (ain && !bin) outp.push(cut(A, Bp));
+        else if (!ain && bin) { outp.push(cut(A, Bp)); outp.push(Bp); }
+      }
+      return outp.length >= 3 ? outp.map(scr) : null;
+    }
+    function rgba(c, a, k, tint) {
+      var r = c[0] * k, g = c[1] * k, b = c[2] * k;
+      if (tint) { r *= tint[0]; g *= tint[1]; b *= tint[2]; }
+      return 'rgba(' + (Math.min(255, r) | 0) + ',' + (Math.min(255, g) | 0) + ',' + (Math.min(255, b) | 0) + ',' + a + ')';
+    }
+    function visibleNow(p) {
+      if (p.ver && p.ver !== mode.ver) return false;
+      if (p.lod === 'near' && cam.dist > sc.lodDist) return false;
+      if (p.lod === 'far' && cam.dist <= sc.lodDist) return false;
+      if (p.under && !mode.coupe) return false;
+      if (p.cut === 'only' && !mode.coupe) return false;
+      if (p.cut === 'hide' && mode.coupe) return false;
+      if (p.exOnly && !(chanF[p.exOnly] > 0.001)) return false;
+      if (p.exHide && chanF[p.exHide] > 0.001) return false;
+      return true;
+    }
+
+    function paint(it, T) {
+      var p = it.p, s = it.s, j;
+      var hl = p.obj && (p.obj === hov || p.obj === sel);
+      var ghost = p.cut === 'ghost' && mode.coupe;
+      var alpha = ghost ? Math.min(p.a, sc.ghostA || 0.13) : p.a;
+      var lit = T && T.emit && p.emit;
+      if (p.dot) {
+        var rr = Math.max(0.6 * DPR, p.dot * F / s[0][2]);
+        ctx.beginPath(); ctx.arc(s[0][0], s[0][1], rr, 0, 2 * PI);
+        ctx.fillStyle = lit ? rgba(p.emit, 1, 1) : rgba(p.rgb, alpha, 1, T && T.tint);
+        ctx.fill();
+        return;
+      }
+      ctx.beginPath(); ctx.moveTo(s[0][0], s[0][1]);
+      for (j = 1; j < s.length; j++) ctx.lineTo(s[j][0], s[j][1]);
+      if (p.line) {
+        ctx.strokeStyle = p.tc ? colors[p.tc] : (lit ? rgba(p.emit, alpha, 1) : rgba(p.rgb, alpha, hl ? 1.15 : 1, T && T.tint));
+        var dA = (s[0][2] + s[s.length - 1][2]) / 2;
+        ctx.lineWidth = p.lwm ? Math.max(0.7 * DPR, p.lwm * F / dA) : p.lw * DPR;
+        if (p.dash) ctx.setLineDash(p.dash.map(function (v) { return v * DPR; }));
+        ctx.stroke();
+        if (p.dash) ctx.setLineDash([]);
+        return;
+      }
+      ctx.closePath();
+      if (it.h) it.h.forEach(function (hs) {
+        ctx.moveTo(hs[0][0], hs[0][1]);
+        for (var m = 1; m < hs.length; m++) ctx.lineTo(hs[m][0], hs[m][1]);
+        ctx.closePath();
+      });
+      var L = (T && T.light) || sc.light, amb = T && T.amb != null ? T.amb : sc.amb, dif = T && T.dif != null ? T.dif : sc.dif;
+      var k = p.flat ? (T && T.flat != null ? T.flat : 1) : (amb + dif * Math.max(0, dot(it.n, L)));
+      if (hl) k *= 1.1;
+      var base = p.tcs ? colors.rgb[p.tcs] : p.rgb;
+      ctx.fillStyle = p.tc ? colors[p.tc] : (lit ? rgba(p.emit, alpha, 1) : rgba(base, alpha, k, T && T.tint));
+      ctx.fill(it.h ? 'evenodd' : 'nonzero');
+      if (p.seam && !ghost) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 0.9 * DPR; ctx.stroke(); }
+      if (p.edge && !ghost) {
+        ctx.strokeStyle = p.ec ? rgba(p.ec, Math.min(1, alpha), Math.min(1.15, k), T && T.tint) : rgba(base, Math.min(1, alpha), k * 0.74, T && T.tint);
+        ctx.lineWidth = p.edgem ? Math.max(0.6 * DPR, Math.min(p.edge * 4 * DPR, p.edgem * F / Math.max(1, it.k))) : p.edge * DPR;
+        ctx.stroke();
+      }
+      if (ghost) { ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 0.7 * DPR; ctx.stroke(); }
+      if (hl && p.layer === 1 && !p.two && sel === p.obj && !ghost) { ctx.strokeStyle = colors.hl; ctx.lineWidth = 1.1 * DPR; ctx.stroke(); }
+    }
+
+    function drawShadows(Bs, T) {
+      if (shadowCv.width !== W || shadowCv.height !== H) { shadowCv.width = W; shadowCv.height = H; }
+      sctx.setTransform(1, 0, 0, 1, 0, 0); sctx.globalCompositeOperation = 'source-over';
+      sctx.clearRect(0, 0, W, H); sctx.fillStyle = '#000';
+      var L = (T && T.light) || sc.light, gy = sc.groundY || 0;
+      for (var i = 0; i < polys.length; i++) {
+        var p = polys[i];
+        if (p.layer !== 1 || p.line || p.dot || !p.shadow || p.under) continue;
+        if (!visibleNow(p) || (p.cut === 'ghost' && mode.coupe)) continue;
+        var gp = new Array(p.pts.length), off = p.grp ? expl(p.grp) : null;
+        for (var j = 0; j < p.pts.length; j++) {
+          var q = world(p.pts[j], p, off), t = Math.max(0, (q[1] - gy) / L[1]);
+          gp[j] = [q[0] - L[0] * t, gy, q[2] - L[2] * t];
+        }
+        var sp2 = projPoly(Bs, gp, null, false);
+        if (!sp2) continue;
+        sctx.beginPath();
+        sp2.forEach(function (r, m) { if (m === 0) sctx.moveTo(r[0], r[1]); else sctx.lineTo(r[0], r[1]); });
+        sctx.closePath();
+        sctx.fill();
+      }
+      if (sc.clip) {
+        sctx.globalCompositeOperation = 'destination-in';
+        var cp2 = projPoly(Bs, sc.clip, null, false);
+        sctx.beginPath();
+        if (cp2) cp2.forEach(function (r, m) { if (m === 0) sctx.moveTo(r[0], r[1]); else sctx.lineTo(r[0], r[1]); });
+        sctx.closePath(); sctx.fill();
+        sctx.globalCompositeOperation = 'source-over';
+      }
+      ctx.save(); ctx.globalAlpha = (T && T.shadowA != null) ? T.shadowA : (sc.shadowA || 0.18); ctx.drawImage(shadowCv, 0, 0); ctx.restore();
+    }
+
+    function roundRect(x, y, w, h, r) {
+      ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.arcTo(x + w, y, x + w, y + r, r);
+      ctx.lineTo(x + w, y + h - r); ctx.arcTo(x + w, y + h, x + w - r, y + h, r); ctx.lineTo(x + r, y + h);
+      ctx.arcTo(x, y + h, x, y + h - r, r); ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r); ctx.closePath();
+    }
+    function pinVisible(pn) {
+      if (pn.ver && pn.ver !== mode.ver) return false;
+      if (pn.cut === 'only' && !mode.coupe) return false;
+      if (pn.ex && chan(pn.ex === true ? 'main' : pn.ex).to !== 1) return false;
+      if (pn.exHide && chan(pn.exHide).to === 1) return false;
+      return true;
+    }
+    function drawPins(Bs, T) {
+      pinPos = [];
+      var pinCol = (T && T.pin) || colors.pin, pinTxt = (T && T.pinText) || colors.sheet;
+      var ringCol = (T && T.pinRing) || colors.sheet;
+      for (var i = 0; i < pins.length; i++) {
+        var pn = pins[i];
+        if (!pinVisible(pn)) continue;
+        var a = pn.at, off = pn.grp ? expl(pn.grp) : null;
+        if (off) a = [a[0] + off[0], a[1] + off[1], a[2] + off[2]];
+        if (pn.tf && sc.tfs && sc.tfs[pn.tf]) { var t = sc.tfs[pn.tf]; a = [a[0] + t.x, a[1] + (t.y || 0), a[2] + t.z]; }
+        var r = project(Bs, a);
+        if (r[2] < NEAR || r[0] < -40 || r[0] > W + 40 || r[1] < -40 || r[1] > H + 40) continue;
+        var isSel = sel === pn.id, isHov = hov === pn.id, rad = (isSel ? 12.5 : 10.5) * DPR;
+        ctx.beginPath(); ctx.arc(r[0], r[1], rad + 2.5 * DPR, 0, 2 * PI); ctx.fillStyle = ringCol; ctx.fill();
+        ctx.beginPath(); ctx.arc(r[0], r[1], rad, 0, 2 * PI); ctx.fillStyle = isSel ? colors.hl : pinCol; ctx.fill();
+        ctx.fillStyle = isSel ? '#FFFFFF' : pinTxt; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.font = '700 ' + Math.round(10.5 * DPR) + 'px ' + colors.font;
+        ctx.fillText(String(pn.n), r[0], r[1] + 0.5 * DPR);
+        pinPos.push({ id: pn.id, x: r[0], y: r[1], r: rad + 7 * DPR });
+        if ((isSel || isHov) && opts.title) {
+          var label = opts.title(pn.id);
+          if (label) {
+            ctx.font = '600 ' + Math.round(12 * DPR) + 'px ' + colors.font;
+            var tw2 = ctx.measureText(label).width + 16 * DPR, th = 24 * DPR;
+            var lx = r[0] + rad + 6 * DPR, ly = r[1] - th / 2;
+            if (lx + tw2 > W - 6 * DPR) lx = r[0] - rad - 6 * DPR - tw2;
+            roundRect(lx, ly, tw2, th, 6 * DPR); ctx.fillStyle = colors.sheet; ctx.fill();
+            ctx.strokeStyle = colors.grid; ctx.lineWidth = DPR; ctx.stroke();
+            ctx.fillStyle = colors.ink; ctx.textAlign = 'left'; ctx.fillText(label, lx + 8 * DPR, r[1] + 0.5 * DPR);
+          }
+        }
+      }
+    }
+    function drawOverlays(Bs, T) {
+      if (!sc.overlay) return;
+      var ink = (T && T.ink) || colors.ink, m = 14 * DPR;
+      ctx.save();
+      ctx.font = '600 ' + Math.round(10.5 * DPR) + 'px ' + colors.font;
+      if (sc.overlay.compass) {
+        var c0 = project(Bs, [cam.tx, cam.ty, cam.tz]), c1 = project(Bs, [cam.tx, cam.ty, cam.tz - 10]);
+        var vx = c1[0] - c0[0], vy = c1[1] - c0[1], l = Math.hypot(vx, vy) || 1; vx /= l; vy /= l;
+        var cx = W - (ins.r + 30) * DPR, cy = H - (ins.b + 34) * DPR, rr = 15 * DPR;
+        ctx.beginPath(); ctx.arc(cx, cy, rr, 0, 2 * PI); ctx.fillStyle = (T && T.chip) || colors.sheet; ctx.globalAlpha = 0.85; ctx.fill(); ctx.globalAlpha = 1;
+        ctx.strokeStyle = ink; ctx.lineWidth = DPR; ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx + vx * rr * 0.8, cy + vy * rr * 0.8);
+        ctx.lineTo(cx - vy * rr * 0.32, cy + vx * rr * 0.32);
+        ctx.lineTo(cx + vy * rr * 0.32, cy - vx * rr * 0.32);
+        ctx.closePath(); ctx.fillStyle = '#D9543A'; ctx.fill();
+        ctx.fillStyle = ink; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('N', cx + vx * (rr + 9 * DPR), cy + vy * (rr + 9 * DPR));
+      }
+      if (sc.overlay.scale && cam.dist > 35) {
+        var ppm = F / cam.dist, choices = [5, 10, 20, 50, 100], len = 20;
+        for (var i = 0; i < choices.length; i++) { if (choices[i] * ppm >= 50 * DPR) { len = choices[i]; break; } }
+        var px = len * ppm, x0 = W - (ins.r + 70) * DPR - px, y0 = H - (ins.b + 20) * DPR;
+        ctx.strokeStyle = ink; ctx.lineWidth = 1.5 * DPR;
+        ctx.beginPath(); ctx.moveTo(x0, y0 - 4 * DPR); ctx.lineTo(x0, y0); ctx.lineTo(x0 + px, y0); ctx.lineTo(x0 + px, y0 - 4 * DPR); ctx.stroke();
+        ctx.fillStyle = ink; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+        ctx.fillText(len + ' m', x0 + px / 2, y0 - 4 * DPR);
+      }
+      ctx.restore();
+    }
+    function drawStars() {
+      if (!stars) {
+        var R2 = rng(99); stars = [];
+        for (var i = 0; i < 90; i++) stars.push([R2() * W, R2() * H * 0.55, (0.4 + R2() * 1.1) * DPR, 0.35 + R2() * 0.6]);
+      }
+      stars.forEach(function (s) { ctx.globalAlpha = s[3]; ctx.fillStyle = '#FFFFFF'; ctx.fillRect(s[0], s[1], s[2], s[2]); });
+      ctx.globalAlpha = 1;
+    }
+
+    function draw() {
+      dirty = false;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      var T = tod();
+      var g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, (T && T.bg) ? T.bg[0] : colors.a); g.addColorStop(1, (T && T.bg) ? T.bg[1] : colors.b);
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      if (!sc) return;
+      if (T && T.stars) drawStars();
+      frame();
+      chanF = {}; for (var cn in chans) chanF[cn] = ease(chans[cn].v);
+      var Bs = basis();
+      var camW = [cam.tx + cam.dist * Bs.cp * Bs.sy, cam.ty + cam.dist * Bs.sp, cam.tz + cam.dist * Bs.cp * Bs.cy];
+      var list = [], under = [], i, j, m = 60 * DPR;
+      for (i = 0; i < polys.length; i++) {
+        var p = polys[i]; p._k = null;
+        if (p.sonly || !visibleNow(p)) continue;
+        var sp = projPoly(Bs, p.pts, p, p.line);
+        if (!sp) continue;
+        var x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9, sum = 0;
+        for (j = 0; j < sp.length; j++) {
+          var q = sp[j]; sum += q[2];
+          if (q[0] < x0) x0 = q[0]; if (q[0] > x1) x1 = q[0]; if (q[1] < y0) y0 = q[1]; if (q[1] > y1) y1 = q[1];
+        }
+        if (p.dot) { var rr = p.dot * F / sp[0][2]; x0 -= rr; x1 += rr; y0 -= rr; y1 += rr; }
+        if (x1 < -m || x0 > W + m || y1 < -m || y0 > H + m) continue;
+        var n = p.n;
+        if (!p.line && !p.dot) {
+          var cw = world(p.c, p, p.grp ? expl(p.grp) : null);
+          if (p.tf && sc.tfs && sc.tfs[p.tf]) { var tt = sc.tfs[p.tf]; n = rotY(n, Math.cos(tt.yaw || 0), Math.sin(tt.yaw || 0)); }
+          if (dot(n, sub(camW, cw)) < 0) { if (!p.two) continue; n = [-n[0], -n[1], -n[2]]; }
+        }
+        p._k = sum / sp.length + p.bias;
+        var hp = null;
+        if (p.holes) {
+          hp = p.holes.map(function (hl2) { return projPoly(Bs, hl2, p, false); });
+          if (hp.some(function (h4) { return !h4; })) hp = null;
+        }
+        var item = { p: p, s: sp, n: n, k: p._k, h: hp };
+        if (p.under) under.push(item); else list.push(item);
+      }
+      for (i = 0; i < list.length; i++) {
+        var it = list[i];
+        if (it.p.parent && it.p.parent._k != null) it.k = it.p.parent._k - 0.01;
+      }
+      list.sort(function (a, b2) {
+        if (a.p.layer !== b2.p.layer) return a.p.layer - b2.p.layer;
+        if (a.p.layer === 0) return a.p.zi - b2.p.zi;
+        return b2.k - a.k;
+      });
+      var idx = 0;
+      while (idx < list.length && list[idx].p.layer === 0) { paint(list[idx], T); idx++; }
+      if (mode.coupe && sc.pit) {
+        var pit = projPoly(Bs, sc.pit, null, false);
+        if (pit) {
+          ctx.save();
+          ctx.beginPath(); pit.forEach(function (r, k2) { if (k2 === 0) ctx.moveTo(r[0], r[1]); else ctx.lineTo(r[0], r[1]); }); ctx.closePath();
+          ctx.clip();
+          ctx.fillStyle = rgba(hex(sc.pitColor || '#3B342C'), 1, 1, T && T.tint); ctx.fillRect(0, 0, W, H);
+          under.sort(function (a, b2) { return b2.k - a.k; });
+          under.forEach(function (u) { paint(u, T); });
+          ctx.restore();
+          ctx.strokeStyle = 'rgba(30,25,20,0.8)'; ctx.lineWidth = 2 * DPR;
+          ctx.beginPath(); pit.forEach(function (r, k2) { if (k2 === 0) ctx.moveTo(r[0], r[1]); else ctx.lineTo(r[0], r[1]); }); ctx.closePath(); ctx.stroke();
+        }
+      }
+      if (sc.shadow) drawShadows(Bs, T);
+      for (; idx < list.length; idx++) paint(list[idx], T);
+      if (T && T.glow) {
+        ctx.save(); ctx.globalCompositeOperation = 'lighter';
+        list.forEach(function (it2) {
+          var p2 = it2.p; if (!p2.glow) return;
+          var c = p2.dot ? it2.s[0] : null;
+          if (!c) { var sx = 0, sy = 0; it2.s.forEach(function (q2) { sx += q2[0]; sy += q2[1]; }); c = [sx / it2.s.length, sy / it2.s.length, it2.k]; }
+          var rad = Math.max(4 * DPR, p2.glow * F / Math.max(1, c[2])) * T.glow;
+          var gc = p2.emit || p2.rgb, grd = ctx.createRadialGradient(c[0], c[1], 0, c[0], c[1], rad);
+          grd.addColorStop(0, 'rgba(' + (gc[0] | 0) + ',' + (gc[1] | 0) + ',' + (gc[2] | 0) + ',0.55)');
+          grd.addColorStop(1, 'rgba(' + (gc[0] | 0) + ',' + (gc[1] | 0) + ',' + (gc[2] | 0) + ',0)');
+          ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(c[0], c[1], rad, 0, 2 * PI); ctx.fill();
+        });
+        ctx.restore();
+      }
+      drawn = list;
+      drawPins(Bs, T);
+      drawOverlays(Bs, T);
+    }
+
+    function loop(t) {
+      raf = 0;
+      var dt = last ? Math.min(0.05, (t - last) / 1000) : 0.016; last = t;
+      var anim = false;
+      if (tw) {
+        var u = Math.min(1, (t - tw.t0) / tw.ms), s = ease(u);
+        for (var k in tw.to) cam[k] = tw.from[k] + (tw.to[k] - tw.from[k]) * s;
+        if (u >= 1) tw = null;
+        anim = true; dirty = true;
+      }
+      if (auto) { cam.yaw = wrapAngle(cam.yaw + dt * (sc ? sc.spin : 0.2)); anim = true; dirty = true; }
+      for (var cn in chans) {
+        var ch = chans[cn];
+        if (ch.v !== ch.to) {
+          var st = dt / (reduce ? 0.05 : ((sc && sc.chanDur && sc.chanDur[cn]) || 1.4));
+          ch.v = ch.to > ch.v ? Math.min(ch.to, ch.v + st) : Math.max(ch.to, ch.v - st);
+          anim = true; dirty = true;
+        }
+      }
+      if (mode.anim && sc && sc.animate) { clock += dt; sc.animate(clock); anim = true; dirty = true; }
+      if (dirty && visible) draw();
+      if (anim && visible) raf = requestAnimationFrame(loop); else last = 0;
+    }
+    function kick() { if (!raf) raf = requestAnimationFrame(loop); }
+
+    function goTo(v, ms) {
+      if (!v) return;
+      if (auto) { auto = false; emit('auto', false); }
+      var from = {}, to = {};
+      ['yaw', 'pitch', 'dist', 'tx', 'ty', 'tz'].forEach(function (k) { if (v[k] == null) return; from[k] = cam[k]; to[k] = v[k]; });
+      if (to.yaw != null) { from.yaw = wrapAngle(from.yaw); to.yaw = from.yaw + wrapAngle(to.yaw - from.yaw); }
+      ms = reduce ? 0 : (ms == null ? 1100 : ms);
+      if (!ms) { for (var k in to) cam[k] = to[k]; tw = null; dirty = true; kick(); return; }
+      tw = { from: from, to: to, ms: ms, t0: performance.now() };
+      kick();
+    }
+    function inPoly(x, y, s) {
+      var c = false;
+      for (var i = 0, j = s.length - 1; i < s.length; j = i++) {
+        if (((s[i][1] > y) !== (s[j][1] > y)) && (x < (s[j][0] - s[i][0]) * (y - s[i][1]) / (s[j][1] - s[i][1]) + s[i][0])) c = !c;
+      }
+      return c;
+    }
+    function hit(x, y) {
+      for (var i = pinPos.length - 1; i >= 0; i--) {
+        var q = pinPos[i];
+        if ((x - q.x) * (x - q.x) + (y - q.y) * (y - q.y) < q.r * q.r) return q.id;
+      }
+      for (i = drawn.length - 1; i >= 0; i--) {
+        var it = drawn[i];
+        if (!it.p.obj || it.p.line || it.p.dot) continue;
+        if (it.p.cut === 'ghost' && mode.coupe) continue;
+        if (inPoly(x, y, it.s) && !(it.h && it.h.some(function (hs) { return inPoly(x, y, hs); }))) return it.p.obj;
+      }
+      return null;
+    }
+    function isPin(id) { return id && pins.some(function (pn) { return pn.id === id && pinVisible(pn); }); }
+
+    /* ---------- gestes ---------- */
+    var ptrs = {}, nPtr = 0, down = null, pinch = null, hoverAt = null, hoverRaf = 0;
+    function local(e) { var r = canvas.getBoundingClientRect(); return [(e.clientX - r.left) * DPR, (e.clientY - r.top) * DPR]; }
+    canvas.addEventListener('pointerdown', function (e) {
+      ptrs[e.pointerId] = [e.clientX, e.clientY]; nPtr = Object.keys(ptrs).length;
+      if (nPtr === 1) down = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, t: performance.now(), moved: false, yaw: cam.yaw, pitch: cam.pitch, type: e.pointerType, pan: e.pointerType === 'mouse' && (e.button === 2 || e.shiftKey) };
+      if (nPtr === 2) {
+        var k = Object.keys(ptrs), a = ptrs[k[0]], b2 = ptrs[k[1]];
+        pinch = { d: Math.hypot(a[0] - b2[0], a[1] - b2[1]) || 1, dist: cam.dist, mx: (a[0] + b2[0]) / 2, my: (a[1] + b2[1]) / 2 };
+        if (down) down.moved = true;
+        lastTap = null;
+      }
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignoré */ }
+    });
+    canvas.addEventListener('pointermove', function (e) {
+      if (!ptrs[e.pointerId]) {
+        if (e.pointerType === 'mouse' && sc) {
+          hoverAt = local(e);
+          if (!hoverRaf) hoverRaf = requestAnimationFrame(function () {
+            hoverRaf = 0;
+            var h2 = hit(hoverAt[0], hoverAt[1]);
+            if (!isPin(h2)) h2 = null;
+            if (h2 !== hov) { hov = h2; canvas.style.cursor = h2 ? 'pointer' : 'grab'; dirty = true; kick(); }
+          });
+        }
+        return;
+      }
+      ptrs[e.pointerId] = [e.clientX, e.clientY];
+      if (nPtr >= 2 && pinch) {
+        var k = Object.keys(ptrs), a = ptrs[k[0]], b2 = ptrs[k[1]];
+        var d = Math.hypot(a[0] - b2[0], a[1] - b2[1]) || 1, mx = (a[0] + b2[0]) / 2, my = (a[1] + b2[1]) / 2;
+        cam.dist = clamp(pinch.dist * pinch.d / d, sc.minDist, sc.maxDist);
+        if (auto) { auto = false; emit('auto', false); }
+        pan(mx - pinch.mx, my - pinch.my); pinch.mx = mx; pinch.my = my;
+        tw = null; dirty = true; kick();
+        return;
+      }
+      if (!down) return;
+      var dx = e.clientX - down.x, dy = e.clientY - down.y;
+      if (!down.moved && Math.abs(dx) + Math.abs(dy) > 6) { down.moved = true; if (auto) { auto = false; emit('auto', false); } tw = null; }
+      if (down.moved) {
+        if (down.pan) { pan(e.clientX - down.lx, e.clientY - down.ly); }
+        else {
+          cam.yaw = down.yaw - dx * 0.0065;
+          if (down.type === 'mouse' || explore) cam.pitch = clamp(down.pitch + dy * 0.005, sc.minPitch, sc.maxPitch);
+        }
+        down.lx = e.clientX; down.ly = e.clientY;
+        dirty = true; kick();
+      }
+    });
+    function end(e) {
+      if (!ptrs[e.pointerId]) return;
+      delete ptrs[e.pointerId]; nPtr = Object.keys(ptrs).length;
+      if (nPtr < 2) pinch = null;
+      if (e.type === 'pointerup' && down && !down.moved && performance.now() - down.t < 600 && nPtr === 0) {
+        var l = local(e), now = performance.now();
+        if (lastTap && now - lastTap.t < 340 && Math.hypot(l[0] - lastTap.x, l[1] - lastTap.y) < 34 * DPR) {
+          lastTap = null; zoomAt(l[0], l[1]);
+        } else {
+          lastTap = { t: now, x: l[0], y: l[1] };
+          var id = hit(l[0], l[1]);
+          if (isPin(id)) self.select(id, true); else if (!id) self.select(null);
+        }
+      }
+      if (nPtr === 0) down = null;
+    }
+    canvas.addEventListener('pointerup', end);
+    canvas.addEventListener('pointercancel', end);
+    canvas.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse' && hov) { hov = null; dirty = true; kick(); } });
+    canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    /* déplacement de la cible : dans le plan de l'écran (façade) ou sur le sol (ferme) */
+    function pan(dx, dy) {
+      if (!sc || (!dx && !dy)) return;
+      var s = cam.dist / (F / DPR), B0 = basis(), rx = B0.cy, rz = -B0.sy;
+      if (sc.pan === 'screen') {
+        cam.tx += -rx * dx * s - B0.sp * B0.sy * dy * s;
+        cam.ty += B0.cp * dy * s;
+        cam.tz += -rz * dx * s - B0.sp * B0.cy * dy * s;
+      } else {
+        var kk = s / Math.max(0.3, B0.sp);
+        cam.tx += -rx * dx * s - B0.sy * dy * kk;
+        cam.tz += -rz * dx * s - B0.cy * dy * kk;
+      }
+      var bd = sc.panBounds;
+      if (bd) { cam.tx = clamp(cam.tx, bd[0], bd[1]); cam.ty = clamp(cam.ty, bd[2], bd[3]); cam.tz = clamp(cam.tz, bd[4], bd[5]); }
+      tw = null; dirty = true; kick();
+    }
+    /* double toucher : on vole vers le détail touché */
+    function zoomAt(x, y) {
+      if (!sc) return;
+      for (var i = drawn.length - 1; i >= 0; i--) {
+        var it = drawn[i];
+        if (it.p.line || it.p.dot || it.p.layer === 0) continue;
+        if (inPoly(x, y, it.s) && !(it.h && it.h.some(function (hs) { return inPoly(x, y, hs); }))) {
+          var c = world(it.p.c, it.p, it.p.grp ? expl(it.p.grp) : null);
+          goTo({ tx: c[0], ty: c[1], tz: c[2], dist: clamp(cam.dist * 0.45, sc.minDist, sc.maxDist) }, 800);
+          return;
+        }
+      }
+      goTo({ dist: clamp(cam.dist * 0.6, sc.minDist, sc.maxDist) }, 600);
+    }
+    canvas.addEventListener('dblclick', function (e) { var r = canvas.getBoundingClientRect(); zoomAt((e.clientX - r.left) * DPR, (e.clientY - r.top) * DPR); });
+    canvas.addEventListener('wheel', function (e) {
+      if (!sc || !(explore || e.ctrlKey)) return;
+      e.preventDefault();
+      cam.dist = clamp(cam.dist * Math.exp(e.deltaY * (e.ctrlKey ? 0.01 : 0.0012)), sc.minDist, sc.maxDist);
+      tw = null; dirty = true; kick();
+    }, { passive: false });
+
+    if ('ResizeObserver' in window) new ResizeObserver(resize).observe(canvas); else window.addEventListener('resize', resize);
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (en) { visible = en[0].isIntersecting; if (visible) { dirty = true; kick(); } }).observe(canvas);
+    }
+    if (window.matchMedia) {
+      var mq = matchMedia('(prefers-color-scheme: dark)');
+      if (mq.addEventListener) mq.addEventListener('change', function () { readColors(); kick(); });
+    }
+    new MutationObserver(function () { readColors(); kick(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
+
+    this.load = function (scene) {
+      sc = scene; polys = scene.polys; pins = scene.pins || [];
+      sel = null; hov = null; chans = {}; chanF = {};
+      var v = scene.view; for (var k in v) cam[k] = v[k];
+      if (scene.animate) scene.animate(0);
+      readColors(); resize(); dirty = true; kick();
+    };
+    this.swapPolys = function (scene) { sc.polys = scene.polys; polys = scene.polys; dirty = true; kick(); };
+    this.view = function (name, ms) { if (sc && sc.views[name]) goTo(sc.views[name], ms); };
+    this.goTo = goTo;
+    this.select = function (id, fly) {
+      sel = id || null; dirty = true; kick();
+      if (id && fly && sc.focus && sc.focus[id]) goTo(sc.focus[id], 1200);
+      emit('select', sel);
+    };
+    this.selected = function () { return sel; };
+    this.order = function () { return ((sc && sc.order) || []).filter(function (id) { return pins.some(function (pn) { return pn.id === id && pinVisible(pn); }); }); };
+    this.step = function (dir) {
+      var o = self.order(); if (!o.length) return;
+      var i = o.indexOf(sel), n = i < 0 ? (dir > 0 ? 0 : o.length - 1) : (i + dir + o.length) % o.length;
+      self.select(o[n], true);
+    };
+    this.setMode = function (k, v) { mode[k] = v; dirty = true; kick(); emit('mode', k); };
+    this.mode = function (k) { return mode[k]; };
+    this.setExplode = function (on, ch) { chan(ch).to = on ? 1 : 0; kick(); };
+    this.exploded = function (ch) { return chan(ch).to === 1; };
+    this.setInsets = function (o) { ins = { l: o.l || 0, r: o.r || 0, t: o.t || 0, b: o.b || 0 }; dirty = true; kick(); };
+    this.reset = function () { if (sc) goTo(sc.view, 900); };
+    this.pan = pan;
+    this.setAuto = function (on) { auto = !!on; emit('auto', auto); kick(); };
+    this.isAuto = function () { return auto; };
+    this.zoom = function (f) { if (sc) goTo({ dist: clamp(cam.dist * f, sc.minDist, sc.maxDist) }, 350); };
+    this.setExplore = function (on) { explore = !!on; canvas.style.touchAction = explore ? 'none' : 'pan-y'; };
+    this.on = function (name, fn) { (handlers[name] = handlers[name] || []).push(fn); };
+    this.refresh = function () { readColors(); dirty = true; kick(); };
+    this.camera = function () { return { yaw: cam.yaw, pitch: cam.pitch, dist: cam.dist, tx: cam.tx, ty: cam.ty, tz: cam.tz }; };
+    this.pinScreen = function () { return pinPos.map(function (q) { return { id: q.id, x: q.x / DPR, y: q.y / DPR }; }); };
+    this.stats = function () { return { polys: polys.length, drawn: drawn.length }; };
+    canvas.style.touchAction = 'pan-y';
+    canvas.style.cursor = 'grab';
+    readColors(); resize();
+  }
+
+  root.M3 = { Viewer: Viewer, B: B, P: P, out: out, hex: hex, mix: mix, grad: grad, nrm: nrm, rng: rng, rect: rect, copyPts: copyPts, PI: PI };
+})(window);
+
+</script>
+<script>
+/* Façade SVF : une tour en mur-rideau aux couleurs du logo SVF, une maquette d'essai
+   qui s'éclate en couches, une vue éclatée du bâtiment entier (plateaux, noyau, peau de verre,
+   toit) et le logo SVF en sculpture sur le parvis. Unités : mètres. */
+(function (root) {
+  'use strict';
+  var M = root.M3, B = M.B, P = M.P, out = M.out, rect = M.rect, nrm = M.nrm, hex = M.hex, mix = M.mix, grad = M.grad, PI = M.PI;
+
+  var SVF = ['#63C2A6', '#3B95DB', '#2A4F9E', '#E0245A', '#E8273D', '#F26A21'].map(hex);
+  function g(t) { return grad(SVF, t); }
+  function lift(c, t) { return mix(c, [255, 255, 255], t); }
+  function shade(c, k) { return [Math.min(255, c[0] * k), Math.min(255, c[1] * k), Math.min(255, c[2] * k)]; }
+  function frac(x) { return x - Math.floor(x); }
+  function tri(x) { return 1 - Math.abs(2 * frac(x) - 1); }
+  function area(p) { var s = 0; for (var i = 0; i < p.length; i++) { var a = p[i], b = p[(i + 1) % p.length]; s += a[0] * b[1] - b[0] * a[1]; } return s / 2; }
+  function ccw(p) { return area(p) < 0 ? p.slice().reverse() : p; }
+  function cwise(p) { return area(p) > 0 ? p.slice().reverse() : p; }
+  function lerp2(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; }
+
+  /* ---------- géométrie de la tour ---------- */
+  var X0 = -12, X1 = 12, Z0 = -7.5, Z1 = 7.5, MOD = 1.5, NF = 11;
+  var SL = [];
+  (function () { for (var k = 0; k <= NF; k++) SL.push(+(5 + k * 3.6).toFixed(2)); })();
+  var TOP = SL[SL.length - 1], CR0 = TOP + 0.85, CR1 = CR0 + 1.3;
+  var SIDES = [
+    { id: 'front', sx: X0, sz: Z1, dx: 1, dz: 0, n: 16, p0: 0 },
+    { id: 'right', sx: X1, sz: Z1, dx: 0, dz: -1, n: 10, p0: 16 },
+    { id: 'back', sx: X1, sz: Z0, dx: -1, dz: 0, n: 16, p0: 26 },
+    { id: 'left', sx: X0, sz: Z0, dx: 0, dz: 1, n: 10, p0: 42 }
+  ];
+  var PER = 52, HALF = 26;
+  function perimT(p) { return p < HALF ? (p + 0.5) / HALF : (PER - p - 0.5) / HALF; }
+  /* chaque bande de façade appartient à un niveau (st) : c'est ce qui la fait monter avec son plateau
+     dans la vue éclatée du bâtiment ; le toit et le couronnement forment le groupe « R » */
+  var BANDS = [{ y0: 0, y1: SL[0] - 0.35, kind: 'rdc', st: 0 }];
+  (function () {
+    for (var k = 0; k < SL.length; k++) {
+      BANDS.push({ y0: SL[k] - 0.35, y1: SL[k] + 0.85, kind: 'sp', st: k + 1 });
+      if (k < SL.length - 1) BANDS.push({ y0: SL[k] + 0.85, y1: SL[k + 1] - 0.35, kind: 'vis', st: k + 1 });
+    }
+    BANDS.push({ y0: CR0, y1: CR1, kind: 'crown', st: 'R' });
+  })();
+  function bg(side, st) { return (st === 'R' || st > NF) ? 'bR' : 'b' + side + st; }
+  var GAP = 2.4, OUT = 6, RISE = (NF + 1) * GAP + 3;
+  var SN = { front: [0, 1], right: [1, 0], back: [0, -1], left: [-1, 0] };
+
+  /* lettres « SVF » affichées la nuit par la façade avant : chaque module est un pixel
+     (16 colonnes × 23 bandes). Le S anguleux reprend celui du logo. */
+  var ROWS = 2 * SL.length - 1, R0 = 5;
+  var GLYPHS = [
+    { c0: 0, rows: ['#####', '#....', '.#...', '.#...', '..#..', '...#.', '...#.', '....#', '#####'] },
+    { c0: 6, rows: ['#...#', '#...#', '#...#', '.#.#.', '.#.#.', '.#.#.', '..#..', '..#..', '..#..'] },
+    { c0: 12, rows: ['####', '#...', '#...', '#...', '###.', '#...', '#...', '#...', '#...'] }
+  ];
+  function letterOn(r, c) {
+    var k = r - R0;
+    if (k < 0 || k >= 9) return false;
+    for (var i = 0; i < GLYPHS.length; i++) {
+      var gl = GLYPHS[i], row = gl.rows[k], j = c - gl.c0;
+      if (j >= 0 && j < row.length) return row.charAt(j) === '#';
+    }
+    return false;
+  }
+
+  function build() {
+    var b = new B(), rnd = M.rng(11);
+    var AP = 'apres', AV = 'avant';
+    var stat = [], front = [], others = [], crown = [];
+    for (var r0 = 0; r0 < ROWS; r0++) front.push([]);
+
+    /* ---------- sol, parvis, rue ---------- */
+    var GX0 = -75, GX1 = 75, GZ0 = -60, GZ1 = 62;
+    b.ground(rect(GX0, GZ0, GX1, GZ1), '#D3D7CD');
+    b.ground(rect(-36, -26, 36, 30), '#E8E4DB');
+    var z, x, i;
+    for (z = -26; z <= 30; z += 3) b.gline([-36, z], [36, z], '#D2CDC2', { lw: 0.7 });
+    for (x = -36; x <= 36; x += 3) b.gline([x, -26], [x, 30], '#D2CDC2', { lw: 0.7 });
+    b.ground(rect(-35, -25, -17, 5), '#B5CA98');
+    b.ground(rect(27, -25, 35, 0), '#B5CA98');
+    b.ground(rect(GX0, 30, GX1, 41), '#5C6166');
+    b.ground(rect(GX0, 41, GX1, 46), '#D3CEC4');
+    b.gline([GX0, 35.5], [GX1, 35.5], '#EEEDE6', { lw: 1.3, dash: [9, 9] });
+    for (z = 30.8; z < 40.4; z += 1.2) b.ground(rect(-2.6, z, 2.6, z + 0.6), '#ECEBE4');
+    b.gline([GX0, 30], [GX1, 30], '#A7A399', { lw: 1.2 });
+    b.gline([GX0, 41], [GX1, 41], '#A7A399', { lw: 1.2 });
+
+    /* ---------- APRÈS : le mur-rideau ---------- */
+    var FO = { ver: AP, edge: 1.1, edgem: 0.075, ec: '#353C43', shadow: false };
+    SIDES.forEach(function (sd) {
+      for (var m = 0; m < sd.n; m++) {
+        var u0 = m * MOD, u1 = u0 + MOD;
+        var ax = sd.sx + sd.dx * u0, az = sd.sz + sd.dz * u0, bx = sd.sx + sd.dx * u1, bz = sd.sz + sd.dz * u1;
+        var pidx = sd.p0 + m, t = perimT(pidx), row = ROWS;
+        BANDS.forEach(function (bd) {
+          var pts = [[ax, bd.y0, az], [bx, bd.y0, bz], [bx, bd.y1, bz], [ax, bd.y1, az]];
+          var col, o, p, gp = bg(sd.id, bd.st);
+          if (bd.kind === 'sp') {
+            row--;
+            col = shade(g(t), 0.97);
+            o = Object.assign({ obj: 'alleges', grp: gp }, FO);
+            p = b.add(out(P(pts, col, o), [0, (bd.y0 + bd.y1) / 2, 0]));
+            p._s = lift(g(t), 0.12); p._kind = 'sp'; p._pt = t;
+          } else if (bd.kind === 'vis') {
+            row--;
+            var yy = (bd.y0 + bd.y1) / 2, tg = Math.min(1, yy / CR1), ph = sd.p0 * 0.37;
+            var cloud = 0.5 + 0.25 * Math.sin(0.45 * m + 0.11 * yy + ph) + 0.25 * Math.sin(0.19 * m - 0.23 * yy + 1.3 + ph);
+            col = mix('#365F75', '#B7D2E0', 0.08 + tg * 0.5 + cloud * 0.3);
+            col = shade(col, 0.97 + rnd() * 0.06);
+            o = Object.assign({ obj: 'murrideau', grp: gp }, FO);
+            p = b.add(out(P(pts, col, o), [0, yy, 0]));
+            var lit = rnd();
+            p._s = lit < 0.3 ? hex(lit < 0.09 ? '#DDE7F5' : (lit < 0.2 ? '#F2D59C' : '#EAD9BB')) : null;
+            p._kind = 'vis';
+          } else if (bd.kind === 'rdc') {
+            col = mix('#36586A', '#5E8296', rnd() * 0.3);
+            o = Object.assign({ obj: 'hall', grp: gp }, FO);
+            p = b.add(out(P(pts, col, o), [0, 2, 0]));
+            p._s = hex(m % 3 ? '#F4DDB4' : '#E9D3AE');
+          } else {
+            col = '#E3E9EC';
+            o = Object.assign({ obj: 'couronne', two: true, grp: gp }, FO);
+            p = b.add(out(P(pts, col, o), [0, CR0, 0]));
+            p._s = lift(g(t), 0.3); p._pt = t;
+            crown.push(p);
+          }
+          p.emit = p._s;
+          stat.push(p);
+          if (bd.kind === 'sp' || bd.kind === 'vis') {
+            if (sd.id === 'front') front[row][m] = p;
+            else if (bd.kind === 'sp') others.push(p);
+          }
+        });
+      }
+      /* plan d'ombre de la face (invisible, sert à l'ombre portée) */
+      var Lm = sd.n * MOD;
+      b.add(P([[sd.sx, 0, sd.sz], [sd.sx + sd.dx * Lm, 0, sd.sz + sd.dz * Lm], [sd.sx + sd.dx * Lm, CR1, sd.sz + sd.dz * Lm], [sd.sx, CR1, sd.sz]], '#000', { sonly: true, ver: AP, exHide: 'bat' }));
+    });
+    /* toit, édicules techniques */
+    var RF = { ver: AP, obj: 'couronne', shadow: false, grp: 'bR' };
+    b.add(out(P([[X0, CR0, Z0], [X1, CR0, Z0], [X1, CR0, Z1], [X0, CR0, Z1]], '#8D9499', RF), [0, CR0 - 1, 0]));
+    b.box(-6, CR0, -4, -1, CR0 + 1.6, 1, '#B7BDC1', Object.assign({ edge: 0.5 }, RF));
+    b.box(2, CR0, -5, 7, CR0 + 1.3, -1.5, '#AEB4B8', Object.assign({ edge: 0.5 }, RF));
+    b.box(-2.2, CR0, 2, 1.8, CR0 + 2.4, 4.8, '#C3C7C9', Object.assign({ edge: 0.5 }, RF));
+    /* intérieur, visible seulement dans la vue éclatée du bâtiment : plateaux, poteaux, noyau */
+    var IN = { ver: AP, exOnly: 'bat', shadow: false };
+    for (var sk = 0; sk <= NF; sk++) {
+      var sg = sk === NF ? 'bR' : 'bF' + (sk + 1), sy = SL[sk];
+      b.box(X0 + 0.12, sy - 0.3, Z0 + 0.12, X1 - 0.12, sy, Z1 - 0.12, '#C9C5BC', Object.assign({ edge: 0.5, grp: sg, obj: 'bplateau' }, IN), '#DAD6CE');
+      if (sk < NF) {
+        /* sol de l'étage aux couleurs SVF ; la nuit, il s'allume comme un plateau de bureaux éclairé */
+        var fl = b.add(out(P([[X0 + 1.2, sy + 0.02, Z0 + 1.2], [X1 - 1.2, sy + 0.02, Z0 + 1.2], [X1 - 1.2, sy + 0.02, Z1 - 1.2], [X0 + 1.2, sy + 0.02, Z1 - 1.2]],
+          lift(g(sk / (NF - 1)), 0.42), Object.assign({ grp: sg, obj: 'bplateau', shadow: false }, IN)), [0, sy - 1, 0]));
+        fl.emit = mix(g(sk / (NF - 1)), [255, 241, 214], 0.45);
+      }
+    }
+    var colsIn = [[-11.4, -6.9], [-3.8, -6.9], [3.8, -6.9], [11.4, -6.9], [-11.4, 6.9], [-3.8, 6.9], [3.8, 6.9], [11.4, 6.9], [-11.4, 0], [11.4, 0]];
+    [0].concat(SL.slice(0, -1)).forEach(function (y0, k4) {
+      var y1 = SL[k4] - 0.3, gk = 'bF' + k4;
+      colsIn.forEach(function (c) { b.box(c[0] - 0.28, y0, c[1] - 0.28, c[0] + 0.28, y1, c[1] + 0.28, '#C2BDB3', Object.assign({ grp: gk, obj: 'bplateau' }, IN)); });
+      b.box(-3, y0, -2.3, 3, y1, 2.3, '#A9A49B', Object.assign({ grp: gk, obj: 'bnoyau', edge: 0.4 }, IN), '#B6B1A8');
+    });
+
+    /* hall : porte tambour et marquise suspendue */
+    var HL = { ver: AP, obj: 'hall', grp: 'bfront0' };
+    b.cyl(0, Z1 + 1.3, 1.3, 0, 2.7, 18, '#9CBAC6', Object.assign({ a: 0.9 }, HL), '#6E8590');
+    b.box(-1.36, 2.7, Z1 - 0.02, 1.36, 3.0, Z1 + 2.66, '#5B656C', HL);
+    b.box(-4.6, 4.05, Z1, 4.6, 4.22, Z1 + 3.4, '#CFE1E8', Object.assign({ edge: 0.6, a: 0.92 }, HL));
+    [-4.1, -1.4, 1.4, 4.1].forEach(function (xx) {
+      b.line([xx, 7.4, Z1 + 0.02], [xx, 4.22, Z1 + 3.3], '#4E585F', Object.assign({ lwm: 0.04, lw: 1 }, HL));
+    });
+
+    /* ---------- AVANT : la structure béton et la grue ---------- */
+    var AVo = { ver: AV };
+    SL.forEach(function (s) { b.box(X0 + 0.15, s - 0.3, Z0 + 0.15, X1 - 0.15, s, Z1 - 0.15, '#BDB8AE', Object.assign({ edge: 0.5 }, AVo)); });
+    var cols = [[-11.4, -6.9], [-3.8, -6.9], [3.8, -6.9], [11.4, -6.9], [-11.4, 6.9], [-3.8, 6.9], [3.8, 6.9], [11.4, 6.9], [-11.4, 0], [11.4, 0]];
+    var bottoms = [0].concat(SL.slice(0, -1));
+    bottoms.forEach(function (y0, k) {
+      var y1 = SL[k] - 0.3;
+      cols.forEach(function (c) { b.box(c[0] - 0.3, y0, c[1] - 0.3, c[0] + 0.3, y1, c[1] + 0.3, '#C9C4BA', AVo); });
+      b.box(-3, y0, -2.3, 3, y1, 2.3, '#A9A49B', AVo);
+    });
+    (function crane() {
+      var cx = 17.5, cz = -4, H = TOP + 11.5, w = 0.9, Y = '#E9A62B', C = { ver: AV, lw: 1, shadow: false };
+      var cs = [[-w, -w], [w, -w], [w, w], [-w, w]], y, k;
+      cs.forEach(function (c) { b.line([cx + c[0], 0, cz + c[1]], [cx + c[0], H, cz + c[1]], Y, Object.assign({ lw: 1.4 }, C)); });
+      for (y = 0; y < H - 0.1; y += 2.5) {
+        for (k = 0; k < 4; k++) {
+          var a = cs[k], c2 = cs[(k + 1) % 4], up = Math.min(H, y + 2.5);
+          b.line([cx + a[0], y, cz + a[1]], [cx + c2[0], up, cz + c2[1]], Y, C);
+          if (Math.round(y / 2.5) % 2 === 0) b.line([cx + a[0], y, cz + a[1]], [cx + c2[0], y, cz + c2[1]], Y, C);
+        }
+      }
+      var jd = nrm([-0.83, 0, 0.56]), jp = [jd[2], 0, -jd[0]];
+      function J(d, off, yy) { return [cx + jd[0] * d + jp[0] * off, yy, cz + jd[2] * d + jp[2] * off]; }
+      var LJ = 40, LC = 12, d;
+      b.line(J(0, -0.7, H), J(LJ, -0.7, H), Y, Object.assign({ lw: 1.3 }, C));
+      b.line(J(0, 0.7, H), J(LJ, 0.7, H), Y, Object.assign({ lw: 1.3 }, C));
+      b.line(J(0, 0, H + 1.6), J(LJ, 0, H + 0.4), Y, Object.assign({ lw: 1.3 }, C));
+      for (d = 0; d < LJ; d += 2.5) {
+        var hh = H + 1.6 - 1.2 * (d / LJ), hh2 = H + 1.6 - 1.2 * ((d + 2.5) / LJ);
+        b.line(J(d, -0.7, H), J(d + 2.5, 0, hh2), Y, C);
+        b.line(J(d, 0.7, H), J(d + 2.5, 0, hh2), Y, C);
+        b.line(J(d, -0.7, H), J(d, 0.7, H), Y, C);
+        void hh;
+      }
+      b.line(J(0, -0.7, H), J(-LC, -0.7, H), Y, Object.assign({ lw: 1.3 }, C));
+      b.line(J(0, 0.7, H), J(-LC, 0.7, H), Y, Object.assign({ lw: 1.3 }, C));
+      for (d = 0; d <= LC; d += 3) b.line(J(-d, -0.7, H), J(-d, 0.7, H), Y, C);
+      var cw = J(-LC + 1.5, 0, H);
+      b.box(cw[0] - 1.3, H - 2.2, cw[2] - 1.3, cw[0] + 1.3, H, cw[2] + 1.3, '#9A968E', { ver: AV, edge: 0.4 });
+      var apex = [cx, H + 7, cz];
+      cs.forEach(function (c) { b.line([cx + c[0], H, cz + c[1]], apex, Y, C); });
+      b.line(apex, J(LJ * 0.62, 0, H + 1.6 - 1.2 * 0.62), '#6B6F72', C);
+      b.line(apex, J(-LC, 0, H), '#6B6F72', C);
+      b.box(cx + 0.9, H - 2.6, cz - 0.8, cx + 2.6, H - 0.4, cz + 0.8, '#E9A62B', { ver: AV, edge: 0.4 }, '#D0911F');
+      /* chariot, câbles, crochet et module de façade en cours de levage */
+      var tr = J(26.5, 0, H), hy = TOP - 7;
+      b.box(tr[0] - 0.6, H - 0.5, tr[2] - 0.6, tr[0] + 0.6, H, tr[2] + 0.6, '#5E6266', { ver: AV });
+      b.line([tr[0] - 0.15, H - 0.5, tr[2]], [tr[0] - 0.15, hy + 0.6, tr[2]], '#2B2E30', C);
+      b.line([tr[0] + 0.15, H - 0.5, tr[2]], [tr[0] + 0.15, hy + 0.6, tr[2]], '#2B2E30', C);
+      b.box(tr[0] - 0.35, hy, tr[2] - 0.3, tr[0] + 0.35, hy + 0.6, tr[2] + 0.3, '#E9A62B', { ver: AV });
+      var mx0 = tr[0] - 0.75, mx1 = tr[0] + 0.75, mz = tr[2], my1 = hy - 2.2, my0 = my1 - 3.6;
+      b.line([tr[0], hy, mz], [mx0 + 0.1, my1, mz], '#2B2E30', C);
+      b.line([tr[0], hy, mz], [mx1 - 0.1, my1, mz], '#2B2E30', C);
+      var lifted = { ver: AV, two: true, edge: 1, ec: '#2A3036' };
+      b.add(P([[mx0, my0, mz], [mx1, my0, mz], [mx1, my0 + 1.2, mz], [mx0, my0 + 1.2, mz]], g(0.5), lifted));
+      b.add(P([[mx0, my0 + 1.2, mz], [mx1, my0 + 1.2, mz], [mx1, my1, mz], [mx0, my1, mz]], '#7FA6BA', lifted));
+    })();
+
+    /* ---------- maquette d'essai (mock-up) : deux modules à l'échelle 1, éclatables ---------- */
+    var MX = 24, MZ = 14, MO = { obj: 'maquette' };
+    b.box(MX - 2.2, 0, MZ - 2.3, MX + 2.2, 0.3, MZ + 0.7, '#9AA1A6', Object.assign({ edge: 0.5 }, MO));
+    [MX - 1.75, MX + 1.45].forEach(function (cx2) { b.box(cx2, 0.3, MZ - 2.0, cx2 + 0.3, 5.9, MZ - 1.7, '#6D767E', MO); });
+    b.box(MX - 1.75, 5.9, MZ - 2.0, MX + 1.75, 6.15, MZ - 1.7, '#6D767E', MO);
+    var AN = { obj: 'ancrage' };
+    b.box(MX - 1.7, 0.6, MZ - 1.7, MX + 1.7, 0.9, MZ - 0.15, '#BDB8AE', Object.assign({ edge: 0.5 }, AN));
+    b.box(MX - 1.7, 4.2, MZ - 1.7, MX + 1.7, 4.5, MZ - 0.15, '#BDB8AE', Object.assign({ edge: 0.5 }, AN));
+    [MX - 1.4, MX + 1.0].forEach(function (cx3) { b.box(cx3, 0.3, MZ - 1.4, cx3 + 0.4, 0.6, MZ - 0.6, '#AFA99F', AN); });
+    var mxs = [MX - 1.5, MX, MX + 1.5];
+    mxs.forEach(function (xm) {
+      [0.9, 4.5].forEach(function (ys) { b.box(xm - 0.09, ys - 0.13, MZ - 0.15, xm + 0.09, ys + 0.03, MZ - 0.01, '#7F8C95', AN); });
+    });
+    /* calfeutrement coupe-feu en nez de dalle */
+    [[0.62, 0.88], [4.22, 4.48]].forEach(function (yf) {
+      b.box(MX - 1.5, yf[0], MZ - 0.14, MX + 1.5, yf[1], MZ - 0.03, '#B5473D', { obj: 'ancrage', grp: 'feu' });
+    });
+    var OS = { obj: 'ossature', grp: 'oss' };
+    mxs.forEach(function (xm) { b.box(xm - 0.035, 0.55, MZ - 0.02, xm + 0.035, 5.35, MZ + 0.16, '#3B4248', OS); });
+    var TY = [0.55, 1.75, 4.15, 5.35];
+    [[MX - 1.5, MX], [MX, MX + 1.5]].forEach(function (seg, si) {
+      var xa = seg[0] + 0.035, xb = seg[1] - 0.035;
+      TY.forEach(function (ty) { b.box(xa, ty - 0.035, MZ, xb, ty + 0.035, MZ + 0.14, '#3B4248', OS); });
+      /* allège : isolant + verre émaillé de couleur */
+      var spc = g(si ? 0.72 : 0.28);
+      [[0.59, 1.71], [4.19, 5.31]].forEach(function (yb) {
+        b.box(xa, yb[0], MZ + 0.0, xb, yb[1], MZ + 0.1, '#D7C26B', { obj: 'tympan', grp: 'isol' });
+        b.box(seg[0] + 0.01, yb[0] - 0.03, MZ + 0.17, seg[1] - 0.01, yb[1] + 0.03, MZ + 0.2, spc, { obj: 'tympan', grp: 'tymp', bias: -0.3, edge: 0.5 });
+      });
+      /* double vitrage */
+      var igu = b.box(seg[0] + 0.01, 1.76, MZ + 0.17, seg[1] - 0.01, 4.14, MZ + 0.21, '#86B1C3', { obj: 'vitrage', grp: 'vit', bias: -0.3, a: 0.9 });
+      igu.forEach(function (p) { if (Math.abs(p.n[2]) < 0.5) p.rgb = hex('#30373B'); });
+      /* joints d'étanchéité autour du verre */
+      [[1.76, 4.14], [0.56, 1.74], [4.16, 5.34]].forEach(function (yj) {
+        var JO = { obj: 'vitrage', grp: 'joint', bias: -0.4 }, x0j = seg[0] + 0.02, x1j = seg[1] - 0.02;
+        b.box(x0j, yj[0], MZ + 0.212, x1j, yj[0] + 0.03, MZ + 0.222, '#16191B', JO);
+        b.box(x0j, yj[1] - 0.03, MZ + 0.212, x1j, yj[1], MZ + 0.222, '#16191B', JO);
+        b.box(x0j, yj[0], MZ + 0.212, x0j + 0.03, yj[1], MZ + 0.222, '#16191B', JO);
+        b.box(x1j - 0.03, yj[0], MZ + 0.212, x1j, yj[1], MZ + 0.222, '#16191B', JO);
+      });
+      /* serreurs (aluminium) puis capots (anthracite), horizontaux */
+      TY.forEach(function (ty) {
+        b.box(xa, ty - 0.025, MZ + 0.222, xb, ty + 0.025, MZ + 0.24, '#A3ABB0', { obj: 'capots', grp: 'serreur', bias: -0.5 });
+        b.box(xa, ty - 0.032, MZ + 0.24, xb, ty + 0.032, MZ + 0.29, '#262C31', { obj: 'capots', grp: 'cap', bias: -0.6 });
+      });
+    });
+    mxs.forEach(function (xm) {
+      b.box(xm - 0.025, 0.55, MZ + 0.222, xm + 0.025, 5.35, MZ + 0.24, '#A3ABB0', { obj: 'capots', grp: 'serreur', bias: -0.5 });
+      b.box(xm - 0.032, 0.55, MZ + 0.24, xm + 0.032, 5.35, MZ + 0.3, '#262C31', { obj: 'capots', grp: 'cap', bias: -0.6 });
+    });
+
+    /* ---------- la sculpture SVF sur le parvis ---------- */
+    var SCX = -9, SCZ = 19, SCA = 0.32;
+    (function sculpture() {
+      var s = 0.0075, base = 0.45, ca = Math.cos(SCA), sa = Math.sin(SCA), D = 0.3, SO = { obj: 'sculpture' };
+      var faceN = [sa, 0, ca];
+      function W(xx, yy, zz) { return [SCX + xx * ca + zz * sa, yy, SCZ - xx * sa + zz * ca]; }
+      function L(q) { return [(q[0] - 510) * s, (548 - q[1]) * s + base]; }
+      function glowFront(list, col) {
+        list.forEach(function (p) { if (Math.abs(p.n[0] * faceN[0] + p.n[2] * faceN[2]) > 0.9) p.emit = lift(col, 0.06); });
+      }
+      function prism(poly, holes, col) {
+        col = Array.isArray(col) ? col : hex(col);
+        var o = ccw(poly.map(L)), hs = (holes || []).map(function (h) { return cwise(h.map(L)); });
+        var st = b.list.length;
+        b.shape(o, hs, -D, D, col, col, SO, W);
+        var faces = b.list.slice(st);
+        glowFront(faces, col);
+        return faces[0];
+      }
+      function strip(l0, l1, r0, r1, n, colFn) {
+        for (var k = 0; k < n; k++) {
+          var t0 = k / n, t1 = (k + 1) / n;
+          var q = [lerp2(l0, l1, t0), lerp2(r0, r1, t0), lerp2(r0, r1, t1), lerp2(l0, l1, t1)].map(L);
+          var col = colFn((t0 + t1) / 2), cx = 0, cy = 0;
+          q.forEach(function (pp) { cx += pp[0] / 4; cy += pp[1] / 4; });
+          var cw = W(cx, cy, 0), faces = [];
+          function F(pts) { faces.push(b.add(out(P(pts, col, SO), cw))); }
+          F(q.map(function (pp) { return W(pp[0], pp[1], D); }));
+          F(q.map(function (pp) { return W(pp[0], pp[1], -D); }));
+          [[0, 3], [1, 2]].concat(k === 0 ? [[0, 1]] : []).concat(k === n - 1 ? [[3, 2]] : []).forEach(function (e) {
+            var a = q[e[0]], c = q[e[1]];
+            F([W(a[0], a[1], -D), W(c[0], c[1], -D), W(c[0], c[1], D), W(a[0], a[1], D)]);
+          });
+          glowFront(faces, col);
+        }
+      }
+      /* socle */
+      b.shape([[-3.45, 0], [3.45, 0], [3.45, base], [-3.45, base]], [], -0.8, 0.8, '#3B4147', '#30353A', { obj: 'sculpture', edge: 0.4 }, W);
+      /* S : briques, diagonale, barre basse */
+      var rows = [[98, 148, [[108, 186], [190, 268], [272, 350]]], [152, 200, [[108, 145], [149, 227], [231, 309], [313, 350]]]];
+      rows.forEach(function (rw) {
+        rw[2].forEach(function (bk) {
+          var t = ((bk[0] + bk[1]) / 2 - 108) / 242;
+          prism([[bk[0], rw[0]], [bk[1], rw[0]], [bk[1], rw[1]], [bk[0], rw[1]]], null, shade(mix('#7ECBC1', '#8FC7E1', t), 0.97 + rnd() * 0.07));
+        });
+      });
+      strip([128, 203], [335, 468], [202, 203], [410, 468], 6, function (t) { return mix('#62C1A4', '#7DBCE2', t); });
+      strip([125, 470], [412, 470], [125, 548], [412, 548], 6, function (t) { return mix('#5DBE9F', '#82BEE6', t); });
+      /* V : bloc du haut + bras en dégradé bleu → bleu nuit → magenta → rouge */
+      prism([[358, 100], [440, 100], [440, 199], [358, 199]], null, '#3E98DC');
+      var vg = ['#3B95DB', '#2A4F9E', '#6B3A8E', '#E0245A', '#E8273D'].map(hex);
+      strip([358, 200], [690, 548], [440, 200], [772, 548], 12, function (t) { return grad(vg, t); });
+      /* le bras droit du V est une tour vitrée */
+      var TL = [598, 190], TR = [698, 104], BR = [698, 470.4], BL = [649.7, 419.8];
+      var bfront = prism([TL, TR, BR, BL], null, '#EF4F2E');
+      function bil(u, v) { var a = lerp2(TL, TR, u), c = lerp2(BL, BR, u); return lerp2(a, c, v); }
+      var zf = D + 0.012;
+      for (var ci = 0; ci < 4; ci++) {
+        for (var rj = 0; rj < 8; rj++) {
+          var u0 = 0.1 + ci * 0.2 + 0.035, u1 = u0 + 0.13, v0 = 0.07 + rj * 0.1 + 0.02, v1 = v0 + 0.062;
+          var wq = [bil(u0, v0), bil(u1, v0), bil(u1, v1), bil(u0, v1)].map(L).map(function (pp) { return W(pp[0], pp[1], zf); });
+          b.decal(bfront, wq, '#F3F6F8', { emit: (ci + rj) % 3 ? '#FFF4DC' : '#FFE2A6', glow: (ci + 2 * rj) % 7 === 0 ? 0.22 : 0 });
+        }
+      }
+      /* F : fût, barre haute, barre du milieu (évidée) et sa patte */
+      strip([700, 100], [700, 472.5], [745, 100], [745, 519.7], 6, function (t) { return mix('#F26A21', '#E8403A', t); });
+      prism([[745, 100], [915, 100], [915, 150], [745, 150]], null, '#F26A21');
+      prism([[745, 258], [898, 258], [898, 302], [745, 302]], [[[806, 266], [868, 266], [868, 294], [806, 294]]], '#F26A21');
+      prism([[898, 232], [920, 232], [920, 352], [898, 352]], null, '#F05F22');
+      /* projecteurs au sol */
+      [[-1.6, 1.4], [1.9, 1.4]].forEach(function (lp) {
+        var q = W(lp[0], 0.08, lp[1]);
+        b.dotAt(q, 0.06, '#D9DDE0', { obj: 'sculpture', emit: '#FFF6E6', glow: 0.3 });
+      });
+    })();
+
+    /* ---------- arbres, bancs, passants, voitures, lampadaires, voisins ---------- */
+    [[-30, 27, 1], [-21, 27.5, 0.9], [15.5, 27.5, 0.95], [-38, 14, 1], [-28, -6, 1.05], [-23, -17, 0.9], [-31, -20, 0.95], [30, -13, 0.95], [32, -3, 0.85]].forEach(function (t) {
+      b.tree(t[0], t[1], t[2], { crown: t[1] > 0 ? '#5E8F52' : '#4E7F46' });
+    });
+    [[-16, 13.5], [-2.4, 24], [6, 24]].forEach(function (bc) {
+      b.box(bc[0] - 1.6, 0, bc[1] - 0.35, bc[0] + 1.6, 0.45, bc[1] + 0.35, '#8E7A63', { edge: 0.4 });
+    });
+    [[1.8, 12.2, '#2F5D8C'], [-1.2, 13.4, '#C8452F'], [-2.8, 10.6, '#3E4A54'], [-15.6, 21.2, '#E2AA38'], [22.6, 10.6, '#F26A21'], [26.6, 11.4, '#2E9A62'], [10, 43.6, '#6A4C93'], [-16, 43.2, '#3E4A54'], [7.5, 16.5, '#B33951']].forEach(function (pp) {
+      b.person(pp[0], pp[1], 1.75, pp[2]);
+    });
+    function car(x0, zc, dir, col) {
+      var o = { obj: null }, L2 = 4.4, x1 = x0 + L2, z0 = zc - 0.9, z1 = zc + 0.9;
+      b.box(x0, 0.35, z0, x1, 1.05, z1, col, Object.assign({ edge: 0.5 }, o));
+      var c0 = dir > 0 ? x0 + 1.0 : x0 + 1.2, c1 = c0 + 2.2;
+      b.box(c0, 1.05, z0 + 0.12, c1, 1.62, z1 - 0.12, '#2E3E4A', o, col);
+      [[x0 + 0.85, z0 - 0.02], [x0 + 0.85, z1 - 0.24], [x1 - 0.85, z0 - 0.02], [x1 - 0.85, z1 - 0.24]].forEach(function (w) {
+        b.wheel(w[0], 0.35, w[1], w[1] + 0.26, 0.35, 10, '#202427', o);
+      });
+      var hx = dir > 0 ? x1 + 0.02 : x0 - 0.02;
+      [zc - 0.6, zc + 0.6].forEach(function (zz) { b.dotAt([hx, 0.8, zz], 0.09, '#EDEFF0', { emit: '#FFF6DD', glow: 2.2 }); });
+    }
+    car(-24, 33.2, 1, '#EDEEEE');
+    car(13, 38, -1, '#C8452F');
+    car(-52, 38, -1, '#3B5A7A');
+    [-27, -13, 13, 27].forEach(function (lx) {
+      b.line([lx, 0, 29.3], [lx, 6.2, 29.3], '#4A5257', { lw: 1.6 });
+      b.line([lx, 6.2, 29.3], [lx, 6.2, 30.6], '#4A5257', { lw: 1.4 });
+      b.box(lx - 0.35, 6.0, 30.2, lx + 0.35, 6.25, 31.0, '#2F3538', { shadow: false });
+      b.dotAt([lx, 5.92, 30.6], 0.18, '#E9E2C8', { emit: '#FFE3A8', glow: 7 });
+    });
+    [[-50, -50, -31, -35, 12.4, '#DCD6CC'], [29, -48, 47, -33, 15.8, '#D3CDC4'], [-15, -56, 11, -45, 9, '#E2DDD4']].forEach(function (nb) {
+      var fs = b.box(nb[0], 0, nb[1], nb[2], nb[4], nb[3], nb[5], { edge: 0.5 }, '#C9C3B9');
+      var fz = fs.filter(function (q) { return q.n[2] > 0.9; })[0];
+      var fx = fs.filter(function (q) { return nb[0] > 0 ? q.n[0] < -0.9 : q.n[0] > 0.9; })[0], sx = nb[0] > 0 ? nb[0] - 0.02 : nb[2] + 0.02;
+      for (var yw = 1.1; yw + 1.5 < nb[4] - 0.5; yw += 3.4) {
+        b.decal(fz, [[nb[0] + 0.9, yw, nb[3] + 0.02], [nb[2] - 0.9, yw, nb[3] + 0.02], [nb[2] - 0.9, yw + 1.5, nb[3] + 0.02], [nb[0] + 0.9, yw + 1.5, nb[3] + 0.02]], '#7E929F', { emit: rnd() < 0.45 ? '#E9CF98' : null });
+        b.decal(fx, [[sx, yw, nb[1] + 0.9], [sx, yw, nb[3] - 0.9], [sx, yw + 1.5, nb[3] - 0.9], [sx, yw + 1.5, nb[1] + 0.9]], '#7E929F', { emit: rnd() < 0.45 ? '#E9CF98' : null });
+      }
+    });
+
+    /* ---------- repères ---------- */
+    var pins = [
+      { id: 'tour', at: [X1, CR1 + 1.6, Z1], ver: AP, grp: 'bR', exHide: 'bat' },
+      { id: 'murrideau', at: [-6.75, 27.6, Z1 + 0.3], ver: AP, grp: 'bfront7' },
+      { id: 'alleges', at: [X1 + 0.3, SL[4] + 0.25, 0.75], ver: AP, grp: 'bright5' },
+      { id: 'couronne', at: [0, CR0 + 0.65, Z1 + 0.3], ver: AP, grp: 'bR', exHide: 'bat' },
+      { id: 'hall', at: [3.4, 3.2, Z1 + 2.2], ver: AP, grp: 'bfront0' },
+      { id: 'sculpture', at: [SCX, 4.4, SCZ] },
+      { id: 'bpeau', at: [-6.75, SL[7] + 0.25, Z1 + 0.3], ver: AP, ex: 'bat', grp: 'bfront8' },
+      { id: 'bplateau', at: [X1 - 1.2, SL[4] + 0.05, Z1 - 1.2], ver: AP, ex: 'bat', grp: 'bF5' },
+      { id: 'bnoyau', at: [3.05, SL[2] + 1.7, 2.35], ver: AP, ex: 'bat', grp: 'bF3' },
+      { id: 'btoit', at: [-3.5, CR0 + 2.0, -1.5], ver: AP, ex: 'bat', grp: 'bR' },
+      { id: 'maquette', at: [MX, 6.9, MZ - 1.8] },
+      { id: 'ancrage', at: [MX, 4.75, MZ - 0.1], ex: true },
+      { id: 'ossature', at: [MX + 1.5, 3.0, MZ + 0.16], ex: true, grp: 'oss' },
+      { id: 'tympan', at: [MX + 0.75, 4.75, MZ + 0.2], ex: true, grp: 'tymp' },
+      { id: 'vitrage', at: [MX - 0.75, 2.95, MZ + 0.21], ex: true, grp: 'vit' },
+      { id: 'capots', at: [MX, 1.75, MZ + 0.27], ex: true, grp: 'cap' },
+      { id: 'structure', at: [-3.8, SL[5] + 0.3, Z1 - 0.3], ver: AV }
+    ];
+    var ORDER = ['tour', 'murrideau', 'alleges', 'couronne', 'hall', 'sculpture', 'bpeau', 'bplateau', 'bnoyau', 'btoit',
+      'maquette', 'ancrage', 'ossature', 'tympan', 'vitrage', 'capots', 'structure'];
+    pins.forEach(function (pn) { pn.n = ORDER.indexOf(pn.id) + 1; });
+
+    /* vue éclatée : la maquette d'essai (canal principal) et le bâtiment entier (canal « bat ») */
+    var EXP = { feu: [0, 0, 0.8], oss: [0, 0, 1.6], isol: [0, 0, 2.5], tymp: [0, 0, 3.4], vit: [0, 0, 4.5], joint: [0, 0, 5.4], serreur: [0, 0, 6.2], cap: [0, 0, 7.0] };
+    function stg(st) { return 1 - st / (NF + 1); }
+    for (var se = 0; se <= NF; se++) {
+      EXP['bF' + se] = { o: [0, se * GAP, 0], ch: 'bat', s: stg(se) };
+      SIDES.forEach(function (sd) { var nn = SN[sd.id]; EXP['b' + sd.id + se] = { o: [nn[0] * OUT, se * GAP, nn[1] * OUT], ch: 'bat', s: stg(se) }; });
+    }
+    EXP.bR = { o: [0, RISE, 0], ch: 'bat', s: 0 };
+
+    var day = nrm([-0.35, 0.85, 0.5]);
+    var EXV = { yaw: 0.98, pitch: 0.3, dist: 22.5, tx: MX - 0.2, ty: 2.7, tz: MZ + 3.6 };
+    var EB = { yaw: 0.62, pitch: 0.16, dist: 160, tx: 2, ty: 38.5, tz: 6 };
+    var scene = {
+      polys: b.list, pins: pins,
+      light: day, amb: 0.62, dif: 0.44,
+      tods: {
+        jour: { light: day, amb: 0.62, dif: 0.44, shadowA: 0.2 },
+        soir: { light: nrm([-0.9, 0.4, 0.22]), amb: 0.5, dif: 0.62, tint: [1.05, 0.84, 0.7], flat: 0.92, shadowA: 0.26,
+          bg: ['#3E4876', '#F29B6B'], emit: true, glow: 0.55, pin: '#1E2230', pinText: '#FFFFFF', ink: '#1E2230' },
+        nuit: { light: nrm([0.3, 0.9, 0.3]), amb: 0.34, dif: 0.2, tint: [0.4, 0.48, 0.72], flat: 0.58, shadowA: 0.08,
+          bg: ['#070D18', '#17243A'], emit: true, glow: 1, stars: true, pin: '#F2EFE6', pinText: '#14202A', pinRing: '#14202A', ink: '#E8EDF3', chip: '#1C2A44' }
+      },
+      shadow: true, shadowA: 0.2, groundY: 0, clip: rect(GX0, GZ0, GX1, GZ1).map(function (q) { return [q[0], 0, q[1]]; }),
+      lodDist: 1e9, overlay: { compass: true, scale: true },
+      spin: 0.12, minPitch: 0.02, maxPitch: 1.35, minDist: 5, maxDist: 260,
+      pan: 'screen', panBounds: [-60, 60, -2, 90, -50, 55], ghostA: 0.08,
+      explode: EXP, chanDur: { bat: 3.4, main: 1.8 },
+      view: { yaw: 0.6, pitch: 0.17, dist: 104, tx: 2, ty: 19.5, tz: 6 },
+      views: {
+        ensemble: { yaw: 0.6, pitch: 0.17, dist: 104, tx: 2, ty: 19.5, tz: 6 },
+        facade: { yaw: 0, pitch: 0.04, dist: 90, tx: 0, ty: 23.5, tz: 7.5 },
+        angle: { yaw: 0.8, pitch: 0.12, dist: 58, tx: 9, ty: 25, tz: 5.5 },
+        sculpture: { yaw: SCA + 0.05, pitch: 0.13, dist: 11.5, tx: SCX, ty: 2.0, tz: SCZ },
+        eclatebat: EB,
+        maquette: EXV
+      },
+      focus: {
+        tour: { yaw: 0.6, pitch: 0.17, dist: 104, tx: 2, ty: 19.5, tz: 6 },
+        murrideau: { yaw: 0.22, pitch: 0.1, dist: 30, tx: -5, ty: 26, tz: 7.5 },
+        alleges: { yaw: 1.2, pitch: 0.08, dist: 34, tx: 12, ty: SL[4], tz: 0 },
+        couronne: { yaw: 0.5, pitch: 0.28, dist: 38, tx: 4, ty: CR0 - 1.5, tz: 5 },
+        hall: { yaw: 0.35, pitch: 0.1, dist: 24, tx: 1, ty: 3.2, tz: Z1 + 2 },
+        sculpture: { yaw: SCA + 0.05, pitch: 0.13, dist: 11.5, tx: SCX, ty: 2.0, tz: SCZ },
+        maquette: { yaw: 0.62, pitch: 0.14, dist: 15, tx: MX, ty: 3, tz: MZ },
+        bpeau: EB,
+        bplateau: { yaw: 1.05, pitch: 0.24, dist: 74, tx: 6, ty: 26, tz: 3 },
+        bnoyau: { yaw: 0.79, pitch: 0.17, dist: 58, tx: 0, ty: 16, tz: 0 },
+        btoit: { yaw: 0.7, pitch: 0.42, dist: 46, tx: 0, ty: CR0 + RISE - 2, tz: 0 },
+        ancrage: EXV, ossature: EXV, tympan: EXV, vitrage: EXV, capots: EXV,
+        structure: { yaw: 0.6, pitch: 0.2, dist: 112, tx: 2, ty: 24, tz: 2 }
+      },
+      order: ORDER
+    };
+
+    /* façade animée : « SVF » en lettres de lumière, puis vague de couleurs */
+    var LET = [];
+    for (var rr = 0; rr < ROWS; rr++) { LET.push([]); for (var cc = 0; cc < 16; cc++) LET[rr].push(letterOn(rr, cc)); }
+    function setE(p, col, k) {
+      var e = p._e || (p._e = [0, 0, 0]);
+      e[0] = Math.min(255, col[0] * k); e[1] = Math.min(255, col[1] * k); e[2] = Math.min(255, col[2] * k);
+      p.emit = e;
+    }
+    scene.animate = function (t) {
+      if (!t) { stat.forEach(function (p) { p.emit = p._s; }); return; }
+      var cyc = t % 14, r, c, p;
+      for (r = 0; r < ROWS; r++) {
+        for (c = 0; c < 16; c++) {
+          p = front[r][c];
+          if (!p) continue;
+          if (cyc < 10) {
+            var wipeIn = Math.min(1, cyc / 1.6) * 17, wipeOut = cyc > 8.4 ? (cyc - 8.4) / 1.6 * 17 : -1;
+            if (LET[r][c] && c < wipeIn && c >= wipeOut) setE(p, lift(g(c / 15), 0.22), 0.84 + 0.16 * Math.sin((c / 16 - t * 0.5) * PI * 2));
+            else p.emit = null;
+          } else if (p._kind === 'sp') setE(p, g(tri(c / 32 + t * 0.12)), 1);
+          else p.emit = (r + c) % 7 === 0 ? p._s : null;
+        }
+      }
+      others.forEach(function (q) { setE(q, g(tri(q._pt * 0.5 + t * 0.06)), 1); });
+      crown.forEach(function (q) { setE(q, lift(g(tri(q._pt * 0.5 + t * 0.06)), 0.25), 1); });
+    };
+    return scene;
+  }
+
+  root.SVFFacade = { build: build };
+})(window);
+
+</script>
+<script>
+/* Mode présentation pour les maquettes : la vue 3D occupe tout l'écran, les réglages passent
+   dans un panneau, la fiche de la section et les boutons de sections restent en bas.
+   Plein écran réel quand le navigateur le permet ; sinon (visionneuses d'apps comme Documents
+   ou Fichiers), la vue remplit simplement la fenêtre. Partage du lien et téléchargement inclus. */
+(function (root) {
+  'use strict';
+  var CSS = [
+    '.vp.pz-on{position:fixed!important;inset:0!important;z-index:9000;width:auto!important;height:auto!important;max-height:none!important;aspect-ratio:auto!important;border-radius:0!important;border:0!important;margin:0!important}',
+    'html.pz-lock,html.pz-lock body{overflow:hidden!important}',
+    '.vp .pz-hud{display:none}',
+    '.vp.pz-on .pz-hud{display:block;position:absolute;inset:0;pointer-events:none}',
+    '.vp.pz-on .tools{top:calc(10px + env(safe-area-inset-top,0px));right:12px;z-index:3}',
+    '.vp.pz-on .hint{display:none}',
+    '.pz-only{display:none!important}',
+    '.vp.pz-on .pz-only{display:inline-flex!important;align-items:center;justify-content:center;gap:6px}',
+    '.vp.pz-on .pz-off,.vp.pz-on [data-pz="off"]{display:none!important}',
+    '.pz-i{display:none;line-height:0}',
+    '.pz-i svg{display:block}',
+    '.pz-top{position:absolute;left:12px;top:calc(10px + env(safe-area-inset-top,0px));display:flex;gap:8px;align-items:center;pointer-events:auto;max-width:calc(100% - 330px)}',
+    '.pz-title{font-family:var(--font-display,system-ui);font-weight:800;font-size:1rem;line-height:1.1;padding:8px 12px;border-radius:10px;background:var(--sheet);background:color-mix(in srgb,var(--sheet) 88%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--rule);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.pz-btn{min-height:36px;padding:0 12px;border-radius:9px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);font:inherit;font-weight:700;font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px}',
+    '.pz-btn.pz-main{background:var(--ink);color:var(--paper);border-color:var(--ink)}',
+    '.pz-side{display:none;position:absolute;left:12px;top:calc(60px + env(safe-area-inset-top,0px));width:308px;max-height:calc(100% - var(--pz-b,200px) - 84px);overflow:auto;pointer-events:auto;background:var(--sheet);background:color-mix(in srgb,var(--sheet) 90%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid var(--rule);border-radius:14px;padding:10px;box-sizing:border-box}',
+    '.vp.pz-on.pz-side-open .pz-side{display:block}',
+    '.pz-side > *{margin:0}',
+    '.pz-side .ctrls,.pz-side .ctrls3d{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important}',
+    '.pz-side .grp{padding:8px 10px!important;background:transparent!important;border:0!important;border-bottom:1px solid var(--rule)!important;border-radius:0!important}',
+    '.pz-side .grp:last-child{border-bottom:0!important}',
+    '.pz-side .chip{padding:5px 9px!important;font-size:.82rem!important}',
+    '.pz-side .row{gap:5px!important}',
+    '.pz-bottom{position:absolute;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;pointer-events:none}',
+    '.pz-bottom > *{pointer-events:auto;min-width:0}',
+    '.pz-cap:empty,.pz-strip:empty{display:none}',
+    '.pz-cap > *{max-width:660px;max-height:34vh;overflow:auto;box-sizing:border-box;background:var(--sheet)!important;background:color-mix(in srgb,var(--sheet) 92%,transparent)!important;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);padding:12px 16px!important;box-shadow:0 8px 30px rgba(0,0,0,.18)}',
+    '.pz-strip > ul{display:flex!important;flex-wrap:nowrap!important;gap:6px!important;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;padding:2px!important;margin:0!important;grid-template-columns:none!important;scrollbar-width:thin}',
+    '.pz-strip li{flex:0 0 auto;scroll-snap-align:start}',
+    '.pz-strip li button{white-space:nowrap;width:auto!important;background:var(--sheet);background:color-mix(in srgb,var(--sheet) 92%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}',
+    '.vp.pz-on.pz-hide .pz-side,.vp.pz-on.pz-hide .pz-bottom,.vp.pz-on.pz-hide .pz-top{display:none!important}',
+    '.vp.pz-on.pz-hide .tools > :not(.pz-keep){display:none!important}',
+    '.pz-toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9500;background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:10px;font-weight:700;font-size:.9rem;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:calc(100% - 32px)}',
+    '.pz-copy{position:fixed;left:16px;right:16px;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:9500;display:grid;gap:8px;background:var(--sheet);color:var(--ink);border:1px solid var(--rule);border-radius:12px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:560px;margin:0 auto}',
+    '.pz-copy input{font:inherit;font-size:.9rem;padding:8px;border-radius:8px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);width:100%;box-sizing:border-box}',
+    '@media (max-width: 899px){.pz-top{max-width:calc(100% - 24px);top:calc(56px + env(safe-area-inset-top,0px))}.pz-side{left:12px;right:12px;width:auto;top:calc(104px + env(safe-area-inset-top,0px));max-height:calc(100% - var(--pz-b,200px) - 128px)}.pz-cap > *{max-height:31vh;padding:10px 12px!important;gap:6px!important}.pz-cap h2{font-size:1.08rem!important}.pz-cap p{font-size:.88rem;line-height:1.45}.vp.pz-on [data-pz="wide"]{display:none!important}.vp.pz-on .pz-i{display:inline}.vp.pz-on .pz-t{display:none}.vp.pz-on .tools .ibtn{min-width:40px}}',
+    '@media (prefers-reduced-motion: reduce){.pz-strip > ul{scroll-behavior:auto}}'
+  ].join('\n');
+
+  /* petites icônes dessinées (rendu identique sur tous les appareils) */
+  var ICON = {
+    full: '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8V3h5M12 3h5v5M17 12v5h-5M8 17H3v-5"/></svg>',
+    exit: '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg>',
+    panel: '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5h14M3 10h14M3 15h14"/><circle cx="7" cy="5" r="1.6" fill="currentColor"/><circle cx="13" cy="10" r="1.6" fill="currentColor"/><circle cx="8" cy="15" r="1.6" fill="currentColor"/></svg>',
+    reset: '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="5.5"/><path d="M10 1.5v3M10 15.5v3M1.5 10h3M15.5 10h3"/></svg>',
+    hide: '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10z"/><circle cx="10" cy="10" r="2.4"/></svg>',
+    prev: '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4L6.5 10l6 6"/></svg>',
+    next: '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 4l6 6-6 6"/></svg>'
+  };
+  function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  var framed = false;
+  try { framed = window.self !== window.top; } catch (e) { framed = true; }
+  var webProto = /^https?:$/.test(location.protocol);
+
+  function toast(msg) {
+    var t = el('div', 'pz-toast'); t.setAttribute('role', 'status'); t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 2200);
+  }
+  function showCopy(url, labels) {
+    var old = document.querySelector('.pz-copy'); if (old) old.remove();
+    var box = el('div', 'pz-copy'), inp = el('input'), close = el('button', 'pz-btn');
+    inp.type = 'text'; inp.readOnly = true; inp.value = url; inp.id = 'pz-copy-url'; inp.setAttribute('aria-label', labels.link);
+    close.type = 'button'; close.textContent = labels.close;
+    box.appendChild(el('strong', null, labels.copyHint)); box.appendChild(inp); box.appendChild(close);
+    close.addEventListener('click', function () { box.remove(); });
+    document.body.appendChild(box);
+    inp.focus(); inp.select();
+  }
+  function copyText(url, labels) {
+    var done = function () { toast(labels.copied); };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done, function () { showCopy(url, labels); });
+        return;
+      }
+    } catch (e) { /* repli */ }
+    showCopy(url, labels);
+  }
+
+  /* lien public de la page : GitHub Pages si on y est, sinon l'adresse canonique déclarée dans la page */
+  function publicUrl() {
+    var canon = document.querySelector('link[rel="canonical"]');
+    if (webProto && !framed && /github\.io$/.test(location.hostname)) return location.origin + location.pathname;
+    if (canon && canon.href) return canon.href;
+    return location.href.split('#')[0];
+  }
+
+  function Present(o) {
+    var vp = o.vp, v = o.viewer, self = this, on = false, realFS = false;
+    var L = function () { return o.labels(); };
+    if (!document.getElementById('pz-css')) { var st = el('style'); st.id = 'pz-css'; st.textContent = CSS; document.head.appendChild(st); }
+    var hud = el('div', 'pz-hud'), top = el('div', 'pz-top'), title = el('span', 'pz-title'), side = el('div', 'pz-side');
+    var bottom = el('div', 'pz-bottom'), cap = el('div', 'pz-cap'), strip = el('div', 'pz-strip');
+    top.appendChild(title); hud.appendChild(top); hud.appendChild(side); bottom.appendChild(cap); bottom.appendChild(strip); hud.appendChild(bottom);
+    vp.appendChild(hud);
+    var tools = vp.querySelector('.tools');
+    function tbtn(cls, icon, onClick, keep) {
+      var b = el('button', 'ibtn ' + cls, '<span class="pz-i" aria-hidden="true">' + icon + '</span><span class="pz-t"></span>');
+      b.type = 'button'; if (keep) b.classList.add('pz-keep');
+      b.addEventListener('click', onClick); tools.appendChild(b); return b;
+    }
+    function setLabel(b, txt) { b.querySelector('.pz-t').textContent = txt; b.setAttribute('aria-label', txt); b.title = txt; }
+    var bPanel = tbtn('pz-only', ICON.panel, function () { vp.classList.toggle('pz-side-open'); layout(); });
+    var bReset = tbtn('pz-only', ICON.reset, function () { v.reset(); });
+    var bHide = tbtn('pz-only', ICON.hide, function () { vp.classList.toggle('pz-hide'); syncLabels(); layout(); }, true);
+    var bFull = tbtn('pz-full', ICON.full, function () { if (on) self.exit(); else self.enter(true); }, true);
+
+    /* éléments de la page déplacés dans l'interface pendant la présentation, puis remis en place */
+    var moves = [];
+    function move(node, into) {
+      if (!node) return;
+      var mark = document.createComment('pz');
+      node.parentNode.insertBefore(mark, node);
+      into.appendChild(node);
+      moves.push([node, mark]);
+    }
+    function restore() {
+      moves.forEach(function (m) { m[1].parentNode.insertBefore(m[0], m[1]); m[1].remove(); });
+      moves = [];
+    }
+    function layout() {
+      if (!on) { v.setInsets({}); return; }
+      var hidden = vp.classList.contains('pz-hide'), wide = vp.clientWidth >= 900;
+      var b = hidden ? 0 : bottom.offsetHeight + 16;
+      vp.style.setProperty('--pz-b', b + 'px');
+      var sideOpen = !hidden && wide && vp.classList.contains('pz-side-open');
+      v.setInsets({ l: sideOpen ? side.offsetWidth + 16 : 0, t: hidden ? 0 : (wide ? 52 : 96), b: b, r: 0 });
+    }
+    var ro = 'ResizeObserver' in window ? new ResizeObserver(function () { layout(); }) : null;
+    if (ro) { ro.observe(bottom); ro.observe(vp); }
+
+    function syncLabels() {
+      var l = L();
+      title.textContent = o.title();
+      setLabel(bFull, on ? l.exit : l.full);
+      bFull.querySelector('.pz-i').innerHTML = on ? ICON.exit : ICON.full;
+      bFull.setAttribute('aria-pressed', on ? 'true' : 'false');
+      setLabel(bPanel, l.panel);
+      setLabel(bReset, l.reset);
+      setLabel(bHide, vp.classList.contains('pz-hide') ? l.show : l.hide);
+    }
+    function fsElement() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
+    function reqFS() {
+      var d = document.documentElement, f = d.requestFullscreen || d.webkitRequestFullscreen;
+      if (!f) return;
+      try {
+        var r = f.call(d);
+        realFS = true;
+        if (r && r.catch) r.catch(function () { realFS = false; });
+      } catch (e) { realFS = false; }
+    }
+    function exitFS() {
+      var f = document.exitFullscreen || document.webkitExitFullscreen;
+      if (fsElement() && f) { try { var r = f.call(document); if (r && r.catch) r.catch(function () {}); } catch (e) { /* ignoré */ } }
+      realFS = false;
+    }
+    function onFsChange() { if (on && realFS && !fsElement()) { realFS = false; self.exit(); } }
+    document.addEventListener('fullscreenchange', onFsChange);
+    document.addEventListener('webkitfullscreenchange', onFsChange);
+
+    this.enter = function (wantFS) {
+      if (on) return;
+      on = true;
+      if (wantFS) reqFS();
+      (o.panels || []).forEach(function (n) { move(n, side); });
+      if (o.caption) move(o.caption, cap);
+      if (o.strip) move(o.strip, strip);
+      vp.classList.add('pz-on');
+      vp.classList.remove('pz-hide');
+      if (vp.clientWidth >= 900 || window.innerWidth >= 900) vp.classList.add('pz-side-open'); else vp.classList.remove('pz-side-open');
+      document.documentElement.classList.add('pz-lock');
+      v.setExplore(true);
+      syncLabels();
+      requestAnimationFrame(function () { layout(); scrollStrip(); });
+      if (o.onChange) o.onChange(true);
+    };
+    this.exit = function () {
+      if (!on) return;
+      on = false;
+      exitFS();
+      vp.classList.remove('pz-on', 'pz-hide', 'pz-side-open');
+      document.documentElement.classList.remove('pz-lock');
+      restore();
+      v.setExplore(!!o.exploreDefault);
+      v.setInsets({});
+      syncLabels();
+      if (o.onChange) o.onChange(false);
+    };
+    this.active = function () { return on; };
+    this.refresh = function () { syncLabels(); layout(); };
+    function scrollStrip() {
+      if (!on || !o.strip) return;
+      var cur = o.strip.querySelector('[aria-current="true"]');
+      if (cur && cur.scrollIntoView) cur.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    }
+    v.on('select', function () { setTimeout(function () { scrollStrip(); layout(); }, 30); });
+    document.addEventListener('keydown', function (e) {
+      if (!on) return;
+      if (e.target && /input|textarea|select/i.test(e.target.tagName)) return;
+      if (e.key === 'Escape') { self.exit(); }
+      else if ((e.key === 'ArrowRight' || e.key === 'PageDown') && o.step) { e.preventDefault(); o.step(1); }
+      else if ((e.key === 'ArrowLeft' || e.key === 'PageUp') && o.step) { e.preventDefault(); o.step(-1); }
+      else if (e.key === 'h' || e.key === 'H') { vp.classList.toggle('pz-hide'); syncLabels(); layout(); }
+    });
+    syncLabels();
+  }
+
+  /* partage : feuille de partage du système si elle existe, sinon copie du lien */
+  function share(labels, hash) {
+    var url = publicUrl() + (hash ? '#' + hash : '');
+    var data = { title: document.title, url: url };
+    if (navigator.share && !framed) {
+      navigator.share(data).catch(function (e) { if (!e || e.name !== 'AbortError') copyText(url, labels); });
+      return;
+    }
+    copyText(url, labels);
+  }
+  /* téléchargement de la page elle-même (un seul fichier, lisible hors ligne) */
+  function canDownload() { return webProto && !framed && !!(window.fetch && window.Blob && window.URL); }
+  function download(name, labels) {
+    fetch(location.href.split('#')[0], { cache: 'no-store' }).then(function (r) { return r.blob(); }).then(function (b) {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([b], { type: 'text/html' })); a.download = name;
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+    }).catch(function () { toast(labels.fail); });
+  }
+  /* ---------- archive .zip (sans compression) de plusieurs pages, faite dans le navigateur ---------- */
+  var CRC = null;
+  function crc32(u8) {
+    if (!CRC) {
+      CRC = new Uint32Array(256);
+      for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; CRC[n] = c >>> 0; }
+    }
+    var x = 0xFFFFFFFF;
+    for (var i = 0; i < u8.length; i++) x = CRC[(x ^ u8[i]) & 0xFF] ^ (x >>> 8);
+    return (x ^ 0xFFFFFFFF) >>> 0;
+  }
+  function makeZip(files) {
+    var enc = new TextEncoder(), parts = [], central = [], offset = 0, d = new Date();
+    var tm = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+    var dt = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+    files.forEach(function (f) {
+      var name = enc.encode(f.name), crc = crc32(f.data), size = f.data.length;
+      var lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+      lh.setUint16(10, tm, true); lh.setUint16(12, dt, true); lh.setUint32(14, crc, true); lh.setUint32(18, size, true); lh.setUint32(22, size, true);
+      lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+      parts.push(lh.buffer, name, f.data);
+      var ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true);
+      ch.setUint16(12, tm, true); ch.setUint16(14, dt, true); ch.setUint32(16, crc, true); ch.setUint32(20, size, true); ch.setUint32(24, size, true);
+      ch.setUint16(28, name.length, true); ch.setUint16(30, 0, true); ch.setUint16(32, 0, true); ch.setUint16(34, 0, true); ch.setUint16(36, 0, true);
+      ch.setUint32(38, 0, true); ch.setUint32(42, offset, true);
+      central.push(ch.buffer, name);
+      offset += 30 + name.length + size;
+    });
+    var csize = 0; central.forEach(function (b) { csize += b.byteLength; });
+    var end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+    end.setUint32(12, csize, true); end.setUint32(16, offset, true);
+    return new Blob(parts.concat(central, [end.buffer]), { type: 'application/zip' });
+  }
+  function saveBlob(blob, name) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  }
+  /* toutes les pages du dossier dans un seul fichier .zip (lisible hors ligne, liens entre pages conservés) */
+  function downloadAll(list, zipName, labels, folder) {
+    if (!window.TextEncoder) { toast(labels.fail); return; }
+    Promise.all(list.map(function (f) {
+      return fetch(f, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(f); return r.arrayBuffer(); })
+        .then(function (b) { return { name: (folder ? folder + '/' : '') + f, data: new Uint8Array(b) }; });
+    })).then(function (files) { saveBlob(makeZip(files), zipName); })
+      .catch(function () { toast(labels.fail); });
+  }
+
+  /* ---------- diaporama des sections d'une page (page du logo) ---------- */
+  var DCSS = [
+    'html.dk-on,html.dk-on body{overflow:hidden!important}',
+    'html.dk-on .wrap{position:fixed;inset:0;z-index:8000;max-width:none!important;margin:0!important;display:flex!important;flex-direction:column;gap:22px;padding:calc(66px + env(safe-area-inset-top,0px)) clamp(16px,4vw,56px) calc(76px + env(safe-area-inset-bottom,0px))!important;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--paper)}',
+    'html.dk-on .wrap > :not(.dk-cur){display:none!important}',
+    'html.dk-on .wrap > .dk-cur{width:100%;max-width:1100px;margin-left:auto;margin-right:auto;flex:0 0 auto}',
+    'html.dk-on .wrap > .dk-first{margin-top:auto}',
+    'html.dk-on .wrap > .dk-last{margin-bottom:auto}',
+    'html.dk-on .wrap .acts > :not(.lang){display:none!important}',
+    '.dk-ui{display:none!important}',
+    'html.dk-on .dk-ui{display:flex!important}',
+    '.dk-top,.dk-nav{position:fixed;z-index:8100;left:0;right:0;background:var(--paper);background:color-mix(in srgb,var(--paper) 86%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}',
+    '.dk-top{top:0;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid var(--rule)}',
+    '.dk-right{display:flex;gap:10px;align-items:center}',
+    '.dk-nav{bottom:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));gap:6px;align-items:center;border-top:1px solid var(--rule)}',
+    '.dk-strip{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex:1 1 auto;min-width:0;padding:2px;scrollbar-width:thin}',
+    '.dk-strip button{flex:0 0 auto;white-space:nowrap;display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:9px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);font:inherit;font-weight:700;font-size:.9rem;cursor:pointer}',
+    '.dk-strip button[aria-current="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}',
+    '.dk-strip .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--paper);font-family:var(--font-mono,monospace);font-size:11px;font-weight:600}',
+    '.dk-arrow{flex:0 0 auto;width:40px;height:40px;border-radius:10px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);cursor:pointer;display:inline-grid;place-items:center;padding:0}',
+    '.dk-count{font-family:var(--font-mono,monospace);font-size:12px;color:var(--ink-2);white-space:nowrap}',
+    '.dk-exit span{line-height:0}',
+    '@media (max-width: 700px){.dk-strip button:not([aria-current="true"]) .t{display:none}.dk-strip button:not([aria-current="true"]){padding:6px}.dk-count{display:none}.pz-title{font-size:.92rem}}'
+  ].join('\n');
+  function inject(id, css) { if (!document.getElementById(id)) { var st = el('style'); st.id = id; st.textContent = css; document.head.appendChild(st); } }
+  function fsEl() { return document.fullscreenElement || document.webkitFullscreenElement || null; }
+  function fsReq() {
+    var d = document.documentElement, f = d.requestFullscreen || d.webkitRequestFullscreen;
+    if (!f) return false;
+    try { var r = f.call(d); if (r && r.catch) r.catch(function () {}); return true; } catch (e) { return false; }
+  }
+  function fsExit() {
+    var f = document.exitFullscreen || document.webkitExitFullscreen;
+    if (fsEl() && f) { try { var r = f.call(document); if (r && r.catch) r.catch(function () {}); } catch (e) { /* ignoré */ } }
+  }
+  function Deck(o) {
+    var self = this, on = false, cur = 0, realFS = false, S = o.sections;
+    var L = function () { return o.labels(); };
+    inject('pz-css', CSS); inject('dk-css', DCSS);
+    var top = el('div', 'dk-ui dk-top'), title = el('span', 'pz-title'), right = el('div', 'dk-right');
+    var count = el('span', 'dk-count'), bExit = el('button', 'pz-btn pz-main dk-exit');
+    bExit.type = 'button';
+    right.appendChild(count); right.appendChild(bExit); top.appendChild(title); top.appendChild(right);
+    var nav = el('nav', 'dk-ui dk-nav'), prev = el('button', 'dk-arrow', ICON.prev), next = el('button', 'dk-arrow', ICON.next), strip = el('div', 'dk-strip');
+    prev.type = 'button'; next.type = 'button';
+    nav.appendChild(prev); nav.appendChild(strip); nav.appendChild(next);
+    document.body.appendChild(top); document.body.appendChild(nav);
+    prev.addEventListener('click', function () { self.show(cur - 1); });
+    next.addEventListener('click', function () { self.show(cur + 1); });
+    bExit.addEventListener('click', function () { self.exit(); });
+    function mark() {
+      Array.prototype.forEach.call(strip.children, function (b, i) { b.setAttribute('aria-current', i === cur ? 'true' : 'false'); });
+      count.textContent = (cur + 1) + ' / ' + S.length;
+    }
+    function sync() {
+      var l = L();
+      title.textContent = o.title();
+      bExit.innerHTML = '<span aria-hidden="true">' + ICON.exit + '</span><span class="pz-t2"></span>';
+      bExit.querySelector('.pz-t2').textContent = l.exit; bExit.setAttribute('aria-label', l.exit);
+      prev.setAttribute('aria-label', l.prev); next.setAttribute('aria-label', l.next);
+      nav.setAttribute('aria-label', o.title());
+      strip.innerHTML = '';
+      S.forEach(function (s, i) {
+        var b = el('button', null, '<span class="n">' + (i + 1) + '</span><span class="t"></span>');
+        b.type = 'button'; b.querySelector('.t').textContent = s.label();
+        b.addEventListener('click', function () { self.show(i); });
+        strip.appendChild(b);
+      });
+      mark();
+    }
+    this.show = function (i) {
+      cur = (i + S.length) % S.length;
+      S.forEach(function (s, k) {
+        s.els.forEach(function (e, j) {
+          e.classList.toggle('dk-cur', k === cur);
+          e.classList.toggle('dk-first', k === cur && j === 0);
+          e.classList.toggle('dk-last', k === cur && j === s.els.length - 1);
+        });
+      });
+      mark();
+      var wrap = S[cur].els[0].parentNode; if (wrap) wrap.scrollTop = 0;
+      var cb = strip.children[cur]; if (cb && cb.scrollIntoView) cb.scrollIntoView({ block: 'nearest', inline: 'center' });
+      if (o.onShow) o.onShow(S[cur].id);
+    };
+    this.enter = function (wantFS, i) {
+      if (!on) {
+        on = true;
+        if (wantFS) realFS = fsReq();
+        document.documentElement.classList.add('dk-on');
+        sync();
+        if (o.onChange) o.onChange(true);
+      }
+      self.show(i || 0);
+    };
+    this.exit = function () {
+      if (!on) return;
+      on = false;
+      if (realFS) fsExit();
+      realFS = false;
+      document.documentElement.classList.remove('dk-on');
+      var back = S[cur].els[0];
+      S.forEach(function (s) { s.els.forEach(function (e) { e.classList.remove('dk-cur', 'dk-first', 'dk-last'); }); });
+      if (back && back.scrollIntoView) back.scrollIntoView({ block: 'start' });
+      if (o.onChange) o.onChange(false);
+    };
+    this.active = function () { return on; };
+    this.current = function () { return S[cur].id; };
+    this.index = function (id) { for (var i = 0; i < S.length; i++) if (S[i].id === id) return i; return -1; };
+    this.refresh = function () { if (on) sync(); };
+    function onFs() { if (on && realFS && !fsEl()) { realFS = false; self.exit(); } }
+    document.addEventListener('fullscreenchange', onFs);
+    document.addEventListener('webkitfullscreenchange', onFs);
+    document.addEventListener('keydown', function (e) {
+      if (!on) return;
+      if (e.target && /input|textarea|select/i.test(e.target.tagName)) return;
+      if (e.key === 'Escape') self.exit();
+      else if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); self.show(cur + 1); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); self.show(cur - 1); }
+    });
+    /* glisser vers la gauche ou la droite pour changer de section (sauf sur la vue 3D et la barre) */
+    var sx = null, sy = 0;
+    document.addEventListener('touchstart', function (e) {
+      sx = null;
+      if (!on || e.touches.length !== 1) return;
+      var t = e.target;
+      if (t && t.closest && t.closest('canvas, .dk-strip, input, .vp')) return;
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+    }, { passive: true });
+    document.addEventListener('touchend', function (e) {
+      if (!on || sx === null || !e.changedTouches.length) return;
+      var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+      sx = null;
+      if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6) self.show(cur + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+  }
+
+  /* ancres de l'adresse : #pres-nuit-chiens → mode présentation, nuit, section « chiens » */
+  function hashTokens() { return (location.hash || '').replace(/^#/, '').split('-').filter(Boolean); }
+
+  root.Present = {
+    attach: function (o) { return new Present(o); }, deck: function (o) { return new Deck(o); },
+    share: share, download: download, downloadAll: downloadAll, canDownload: canDownload,
+    hashTokens: hashTokens, framed: framed, publicUrl: publicUrl, toast: toast
+  };
+})(window);
+
+</script>
+<script>
+/* =====================================================================
+   MODIFIER LE CONTENU ICI
+   ===================================================================== */
+const TEXTES = {
+  fr: {
+    eyebrow: 'Maquette 3D · pour mon grand frère',
+    title: 'La façade {SVF}',
+    lede: 'Le logo SVF que je t\'avais dessiné, avec tes couleurs, devenu une tour en mur-rideau. Fais-la tourner, éclate le bâtiment étage par étage, démonte la façade couche par couche et passe en mode nuit.',
+    facts: ['Tour de 12 niveaux · 47 m', 'Trame de 1,50 m', 'Allèges aux couleurs SVF', 'Bâtiment éclaté étage par étage', 'Façade éclatée en 9 couches'],
+    hint: 'Glisse pour tourner · deux doigts pour zoomer et déplacer · touche deux fois pour t\'approcher',
+    hintExplore: 'Exploration : un doigt tourne et incline, deux doigts zooment et déplacent',
+    spin: 'Tourner', explore: 'Explorer',
+    present: 'Présenter', share: 'Partager', dl: 'Télécharger',
+    lViews: 'Points de vue', lTod: 'Moment de la journée', lShow: 'Afficher',
+    views: { ensemble: 'Vue d\'ensemble', facade: 'Façade', angle: 'L\'angle', eclatebat: 'Le bâtiment éclaté', maquette: 'La maquette d\'essai', sculpture: 'La sculpture SVF' },
+    tods: { jour: 'Jour', soir: 'Coucher de soleil', nuit: 'Nuit' },
+    avant: 'Avant', apres: 'Après', bat: 'Bâtiment éclaté', eclate: 'Façade éclatée', anim: 'Façade animée',
+    tour: 'Visite guidée', prev: '‹ Précédent', next: 'Suivant ›', back: 'Vue d\'ensemble',
+    pz: { full: 'Plein écran', exit: 'Quitter', panel: 'Réglages', reset: 'Recentrer', hide: 'Masquer', show: 'Afficher', copied: 'Lien copié', copyHint: 'Copie ce lien :', close: 'Fermer', link: 'Lien', fail: 'Téléchargement impossible ici' },
+    intro: {
+      k: 'Pour toi, grand frère', t: 'Un modèle fait pour toi',
+      b: 'Il y a quelques années, tu m\'avais demandé si je savais faire de la modélisation 3D. Voici ma réponse : ton logo SVF en sculpture, devant une façade à tes couleurs. Lance la visite guidée, ou touche « Présenter » pour passer en plein écran.',
+      sig: '— Alioune'
+    },
+    pins: {
+      tour: { k: 'La tour · 12 niveaux', t: 'Une tour en mur-rideau', b: 'Un rez-de-chaussée de 5 m et 11 étages de 3,60 m : environ 47 m avec le couronnement. Le mur-rideau habille les quatre faces, sur une trame de 1,50 m.' },
+      murrideau: { k: 'Façade', t: 'Mur-rideau', b: 'Une peau de verre accrochée devant les dalles : des montants tous les 1,50 m, des traverses à chaque niveau et des capots anthracite. Chaque étage alterne une bande vitrée et une allège.' },
+      alleges: { k: 'Couleurs', t: 'Allèges aux couleurs SVF', b: 'Les allèges (la bande opaque devant chaque dalle) reprennent le dégradé de ton logo : vert d\'eau, bleu, bleu nuit, magenta, rouge, orange. Le dégradé fait le tour du bâtiment et s\'allume la nuit.' },
+      couronne: { k: 'Haut de la tour', t: 'Couronnement lumineux', b: 'Un bandeau de verre sérigraphié qui cache les équipements du toit. La nuit, il s\'éclaire aux mêmes couleurs.' },
+      hall: { k: 'Rez-de-chaussée', t: 'Hall d\'entrée', b: 'Vitrage toute hauteur sur 4,65 m, porte tambour et marquise en verre suspendue par des tirants.' },
+      sculpture: { k: 'Sur le parvis', t: 'Le logo SVF en sculpture', b: 'Le logo que je t\'avais fait, en volume : le S et ses briques, le V dont le bras droit devient une tour vitrée, le F. Environ 6 m de large. La nuit, les fenêtres s\'allument.' },
+      bpeau: { k: 'Bâtiment éclaté · 1', t: 'La peau de verre', b: 'Toute la façade se détache et recule de 6 m : le mur-rideau n\'est qu\'une peau accrochée devant les dalles, étage par étage. Chaque niveau monte de 2,40 m pour qu\'on lise l\'empilement.' },
+      bplateau: { k: 'Bâtiment éclaté · 2', t: 'Les plateaux', b: 'Onze planchers en béton de 30 cm, portés par dix poteaux. Le sol de chaque étage reprend ton dégradé : vert d\'eau en bas, orange en haut.' },
+      bnoyau: { k: 'Bâtiment éclaté · 3', t: 'Le noyau', b: 'Au centre, le noyau en béton regroupe ascenseurs, escaliers et gaines techniques. C\'est la colonne vertébrale qui tient la tour face au vent.' },
+      btoit: { k: 'Bâtiment éclaté · 4', t: 'Le toit technique', b: 'Le dernier plancher porte la terrasse technique : centrales de ventilation et machinerie d\'ascenseur, cachées derrière le couronnement lumineux.' },
+      maquette: { k: 'Sur le chantier', t: 'Maquette d\'essai', b: 'Deux modules de façade à l\'échelle 1, comme ceux qu\'on monte avant de lancer la fabrication. Active « Façade éclatée » pour la démonter couche par couche.' },
+      ancrage: { k: 'Façade éclatée · 1', t: 'Ancrages et coupe-feu', b: 'Des pattes en acier fixées au bord de chaque dalle portent la façade et rattrapent les tolérances du béton. Le calfeutrement coupe-feu (en rouge) ferme le vide entre dalle et façade pour que le feu ne passe pas d\'un étage à l\'autre.' },
+      ossature: { k: 'Façade éclatée · 2', t: 'Ossature aluminium', b: 'Les montants (verticaux) et les traverses (horizontales) forment la grille qui reçoit le verre.' },
+      tympan: { k: 'Façade éclatée · 3', t: 'Allège isolée', b: 'Un panneau isolant (en jaune) derrière un verre émaillé de couleur : c\'est lui qui porte le dégradé SVF.' },
+      vitrage: { k: 'Façade éclatée · 4', t: 'Double vitrage et joints', b: 'Deux verres séparés par un intercalaire, avec une couche de contrôle solaire : la lumière du jour sans la surchauffe. Les joints en caoutchouc (en noir) rendent l\'ensemble étanche à l\'air et à l\'eau.' },
+      capots: { k: 'Façade éclatée · 5', t: 'Serreurs et capots', b: 'Le serreur en aluminium presse le verre contre l\'ossature, puis le capot anthracite se clipse dessus : c\'est la ligne fine qu\'on voit de l\'extérieur.' },
+      structure: { k: 'Avant', t: 'La structure béton', b: 'Avant la façade : dalles, poteaux et noyau en béton, et la grue qui lève un premier module.' }
+    },
+    foot: 'Maquette indicative, proportions simplifiées. Les termes techniques sont à valider avec toi.',
+    home: 'Toutes les maquettes ›', pal: 'Les couleurs de ton logo SVF'
+  },
+  en: {
+    eyebrow: '3D model · for my big brother',
+    title: 'The {SVF} facade',
+    lede: 'The SVF logo I drew for you, in your colours, turned into a curtain-wall tower. Spin it, explode the building floor by floor, take the facade apart layer by layer and switch to night.',
+    facts: ['12-level tower · 153 ft', '5 ft (1.5 m) module', 'Spandrels in SVF colours', 'Building exploded floor by floor', 'Facade exploded into 9 layers'],
+    hint: 'Drag to rotate · two fingers to zoom and move · double-tap to get closer',
+    hintExplore: 'Explore: one finger rotates and tilts, two fingers zoom and move',
+    spin: 'Rotate', explore: 'Explore',
+    present: 'Present', share: 'Share', dl: 'Download',
+    lViews: 'Viewpoints', lTod: 'Time of day', lShow: 'Show',
+    views: { ensemble: 'Overview', facade: 'Elevation', angle: 'Corner', eclatebat: 'Exploded building', maquette: 'Mock-up', sculpture: 'SVF sculpture' },
+    tods: { jour: 'Day', soir: 'Sunset', nuit: 'Night' },
+    avant: 'Before', apres: 'After', bat: 'Exploded building', eclate: 'Exploded facade', anim: 'Animated facade',
+    tour: 'Guided tour', prev: '‹ Previous', next: 'Next ›', back: 'Overview',
+    pz: { full: 'Full screen', exit: 'Exit', panel: 'Settings', reset: 'Recenter', hide: 'Hide', show: 'Show', copied: 'Link copied', copyHint: 'Copy this link:', close: 'Close', link: 'Link', fail: 'Download not available here' },
+    intro: {
+      k: 'For you, big brother', t: 'A model made for you',
+      b: 'A few years ago you asked me if I could do 3D modeling. Here is my answer: your SVF logo as a sculpture, in front of a facade in your colours. Start the guided tour, or tap "Present" to go full screen.',
+      sig: '— Alioune'
+    },
+    pins: {
+      tour: { k: 'The tower · 12 levels', t: 'A curtain-wall tower', b: 'A 5 m (16 ft) lobby level and 11 floors at 3.6 m (11.8 ft): about 47 m (153 ft) with the crown. The curtain wall wraps all four sides on a 1.5 m (5 ft) module.' },
+      murrideau: { k: 'Facade', t: 'Curtain wall', b: 'A glass skin hung in front of the floor slabs: mullions every 1.5 m, transoms at each floor and dark gray caps. Each floor alternates a vision band and a spandrel.' },
+      alleges: { k: 'Colours', t: 'Spandrels in SVF colours', b: 'The spandrels (the opaque band in front of each slab) follow your logo\'s gradient: aqua, blue, navy, magenta, red, orange. The gradient wraps around the building and lights up at night.' },
+      couronne: { k: 'Top of the tower', t: 'Lit crown', b: 'A band of fritted glass that screens the rooftop equipment. At night it lights up in the same colours.' },
+      hall: { k: 'Ground floor', t: 'Entrance lobby', b: 'Full-height storefront glazing, 4.65 m (15 ft), a revolving door and a glass canopy hung from tie rods.' },
+      sculpture: { k: 'On the plaza', t: 'The SVF logo as a sculpture', b: 'The logo I made for you, in 3D: the S with its bricks, the V whose right arm becomes a glass tower, the F. About 6 m (20 ft) wide. At night the windows light up.' },
+      bpeau: { k: 'Exploded building · 1', t: 'The glass skin', b: 'The whole facade comes off and moves out 6 m (20 ft): the curtain wall is just a skin hung in front of the slabs, floor by floor. Each level rises 2.4 m (8 ft) so you can read the stack.' },
+      bplateau: { k: 'Exploded building · 2', t: 'The floor plates', b: 'Eleven 30 cm (12 in) concrete floors carried by ten columns. Each floor surface follows your gradient: aqua at the bottom, orange at the top.' },
+      bnoyau: { k: 'Exploded building · 3', t: 'The core', b: 'In the middle, the concrete core holds the elevators, stairs and service shafts. It is the backbone that braces the tower against the wind.' },
+      btoit: { k: 'Exploded building · 4', t: 'The mechanical roof', b: 'The top slab carries the mechanical deck: air handlers and elevator machinery, hidden behind the lit crown.' },
+      maquette: { k: 'On site', t: 'Mock-up', b: 'Two full-scale facade units, like the mock-ups built before production starts. Turn on "Exploded facade" to take it apart layer by layer.' },
+      ancrage: { k: 'Exploded facade · 1', t: 'Anchors and firestop', b: 'Steel brackets fixed to the edge of each slab carry the facade and take up the concrete tolerances. The firestop (in red) closes the gap between slab and facade so fire cannot pass from one floor to the next.' },
+      ossature: { k: 'Exploded facade · 2', t: 'Aluminum framing', b: 'Mullions (vertical) and transoms (horizontal) form the grid that holds the glass.' },
+      tympan: { k: 'Exploded facade · 3', t: 'Insulated spandrel', b: 'An insulation panel (in yellow) behind a coloured enamelled glass: this is what carries the SVF gradient.' },
+      vitrage: { k: 'Exploded facade · 4', t: 'Insulating glass and gaskets', b: 'Two panes separated by a spacer, with a solar-control coating: daylight without the heat. Rubber gaskets (in black) make the whole thing air- and watertight.' },
+      capots: { k: 'Exploded facade · 5', t: 'Pressure plates and caps', b: 'The aluminum pressure plate clamps the glass to the frame, then the dark gray cap snaps on: that is the thin line you see from outside.' },
+      structure: { k: 'Before', t: 'The concrete frame', b: 'Before the facade: concrete slabs, columns and core, and the tower crane lifting a first unit.' }
+    },
+    foot: 'Indicative model with simplified proportions. Technical terms to be checked with you.',
+    home: 'All the models ›', pal: 'The colours of your SVF logo'
+  }
+};
+/* ===================================================================== */
+
+(function () {
+  'use strict';
+  var reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var lang = (navigator.language || 'fr').slice(0, 2) === 'en' ? 'en' : 'fr';
+  try { var saved = localStorage.getItem('maquettes-lang'); if (saved === 'en' || saved === 'fr') lang = saved; } catch (e) { /* stockage indisponible */ }
+  var $ = function (s) { return document.querySelector(s); };
+  var T = function () { return TEXTES[lang]; };
+  var autoEx = {}, autoVer = false, present = null;
+
+  var v = new M3.Viewer($('#v3d'), { title: function (id) { var p = T().pins[id]; return p ? p.t : null; } });
+  var scene = SVFFacade.build();
+  /* écran en hauteur (téléphone) : on rapproche un peu la caméra */
+  (function () {
+    var r = $('.vp').getBoundingClientRect();
+    if (r.height > r.width * 0.9) {
+      /* le bâtiment éclaté est haut et la maquette éclatée est large : on les rapproche davantage */
+      var K = { eclatebat: 0.6, bpeau: 0.6, maquette: 0.78, ancrage: 0.78, ossature: 0.78, tympan: 0.78, vitrage: 0.78, capots: 0.78 };
+      [scene.views, scene.focus].forEach(function (set) {
+        Object.keys(set).forEach(function (k) {
+          var d = set[k].dist, f = K[k] || (d > 40 ? 0.8 : 1);
+          if (f !== 1) set[k] = Object.assign({}, set[k], { dist: d * f });
+        });
+      });
+      scene.view = scene.views.ensemble;
+    }
+  })();
+  v.load(scene);
+  function pinOf(id) { return scene.pins.filter(function (p) { return p.id === id; })[0]; }
+  function chOf(p) { return p && p.ex ? (p.ex === true ? 'main' : p.ex) : null; }
+
+  function syncShow() {
+    var b;
+    if ((b = $('#b-avant'))) b.setAttribute('aria-pressed', v.mode('ver') === 'avant' ? 'true' : 'false');
+    if ((b = $('#b-apres'))) b.setAttribute('aria-pressed', v.mode('ver') === 'apres' ? 'true' : 'false');
+    if ((b = $('#b-bat'))) b.setAttribute('aria-pressed', v.exploded('bat') ? 'true' : 'false');
+    if ((b = $('#b-eclate'))) b.setAttribute('aria-pressed', v.exploded('main') ? 'true' : 'false');
+    if ((b = $('#b-anim'))) b.setAttribute('aria-pressed', v.mode('anim') ? 'true' : 'false');
+    document.querySelectorAll('#tod .chip').forEach(function (c) { c.setAttribute('aria-pressed', c.dataset.k === v.mode('tod') ? 'true' : 'false'); });
+  }
+  function setVer(ver, auto) {
+    v.setMode('ver', ver); autoVer = !!auto && ver === 'avant';
+    var sel = v.selected(), p = sel && pinOf(sel);
+    if (p && p.ver && p.ver !== ver) v.select(null);
+    if (ver === 'avant' && v.mode('anim')) setAnim(false);
+    syncShow();
+  }
+  /* deux vues éclatées indépendantes : « main » (la maquette d'essai) et « bat » (le bâtiment) */
+  function setExplode(on, auto, ch) {
+    ch = ch || 'main';
+    v.setExplode(on, ch); autoEx[ch] = on && !!auto;
+    if (!on) { var p = pinOf(v.selected()); if (p && chOf(p) === ch) v.select(null); }
+    syncShow();
+  }
+  function dropAutoEx(keep) {
+    Object.keys(autoEx).forEach(function (c) { if (autoEx[c] && c !== keep && v.exploded(c)) setExplode(false, false, c); });
+  }
+  function setTod(k) { v.setMode('tod', k); syncShow(); }
+  function setAnim(on) {
+    v.setMode('anim', on);
+    if (!on) { scene.animate(0); v.refresh(); }
+    syncShow();
+  }
+  /* avant de montrer un repère, on règle l'affichage qu'il demande */
+  function prepare(id) {
+    var p = pinOf(id); if (!p) return;
+    var ch = chOf(p);
+    /* un repère d'une vue éclatée referme l'autre vue éclatée, pour que rien ne se superpose */
+    if (ch) ['main', 'bat'].forEach(function (c) { if (c !== ch && v.exploded(c)) setExplode(false, false, c); });
+    else dropAutoEx(null);
+    /* la maquette d'essai est au pied de la tour : on referme le bâtiment éclaté pour la voir */
+    if (id === 'maquette' && v.exploded('bat')) setExplode(false, false, 'bat');
+    if (p.ver && v.mode('ver') !== p.ver) setVer(p.ver, true);
+    else if (!p.ver && autoVer && id !== 'structure') setVer('apres');
+    if (ch && !v.exploded(ch)) setExplode(true, true, ch);
+  }
+  function go(id) { prepare(id); v.select(id, true); }
+  function step(dir) {
+    var o = scene.order, cur = v.selected(), i = o.indexOf(cur), n = i < 0 ? (dir > 0 ? 0 : o.length - 1) : (i + dir + o.length) % o.length;
+    go(o[n]);
+  }
+  function overview() {
+    dropAutoEx(null);
+    if (autoVer) setVer('apres');
+    v.select(null); v.view('ensemble');
+  }
+
+  function card(id) {
+    var t = T(), p = (id && t.pins[id]) || t.intro;
+    var nav = id
+      ? '<div class="row"><button class="chip" type="button" data-step="-1">' + t.prev + '</button><button class="chip" type="button" data-step="1">' + t.next + '</button><button class="chip" type="button" data-back="1">' + t.back + '</button></div>'
+      : '<div class="row"><button class="chip tour" type="button" data-step="1">' + t.tour + ' ›</button></div>';
+    $('#card').innerHTML = '<p class="k">' + p.k + '</p><h2>' + p.t + '</h2><p>' + p.b + '</p>' + (id ? '' : '<p class="sig">' + p.sig + '</p>') + nav;
+    document.querySelectorAll('#list button').forEach(function (b) { b.setAttribute('aria-current', b.dataset.id === id ? 'true' : 'false'); });
+  }
+  $('#card').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.step) step(+b.dataset.step);
+    if (b.dataset.back) overview();
+  });
+  v.on('select', function (id) {
+    if (id) dropAutoEx(chOf(pinOf(id)));
+    card(id);
+  });
+  v.on('auto', function (on) { $('#b-spin').setAttribute('aria-pressed', on ? 'true' : 'false'); });
+
+  function chips(el, items, onClick) {
+    el.innerHTML = '';
+    items.forEach(function (it) {
+      var b = document.createElement('button'); b.className = 'chip'; b.type = 'button'; b.textContent = it[1]; b.dataset.k = it[0];
+      if (it[2]) b.id = it[2];
+      if (it[3]) b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', function () { onClick(it[0], b); });
+      el.appendChild(b);
+    });
+  }
+  function renderList() {
+    var t = T(), ls = $('#list'); ls.innerHTML = '';
+    scene.order.forEach(function (id) {
+      var pin = pinOf(id), li = document.createElement('li'), b = document.createElement('button');
+      b.type = 'button'; b.dataset.id = id;
+      if (pin.ex) li.className = pin.ex === 'bat' ? 'exb' : 'ex';
+      b.innerHTML = '<span class="num">' + pin.n + '</span><span>' + t.pins[id].t + '</span>';
+      b.setAttribute('aria-current', v.selected() === id ? 'true' : 'false');
+      b.addEventListener('click', function () {
+        go(id);
+        if (present && present.active()) return;
+        var r = $('.vp').getBoundingClientRect();
+        if (r.top < 0 || r.bottom > window.innerHeight) $('.vp').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      });
+      li.appendChild(b); ls.appendChild(li);
+    });
+  }
+  function showBat(on, auto) {
+    if (on && v.mode('ver') !== 'apres') setVer('apres');
+    setExplode(on, auto, 'bat');
+    if (on) { v.select(null); v.view('eclatebat'); }
+    else if (!v.selected()) v.view('ensemble');
+  }
+  function render() {
+    var t = T();
+    document.documentElement.lang = lang;
+    document.title = 'SVF · ' + (lang === 'fr' ? 'façade 3D' : '3D facade');
+    $('#t-eyebrow').textContent = t.eyebrow;
+    $('#t-title').innerHTML = t.title.replace('{SVF}', '<span class="svf">SVF</span>');
+    $('#t-lede').textContent = t.lede;
+    $('#t-facts').innerHTML = t.facts.map(function (f) { return '<li>' + f + '</li>'; }).join('');
+    $('#t-foot').textContent = t.foot; $('#t-home').textContent = t.home; $('#t-pal').textContent = t.pal;
+    $('#b-spin').textContent = t.spin; $('#b-explore').textContent = t.explore;
+    $('#b-present').textContent = t.present; $('#b-share').textContent = t.share; $('#b-dl').textContent = t.dl;
+    $('#t-hint').textContent = $('#b-explore').getAttribute('aria-pressed') === 'true' ? t.hintExplore : t.hint;
+    $('#v3d').setAttribute('aria-label', 'SVF : ' + t.hint);
+    $('#l-views').textContent = t.lViews; $('#l-tod').textContent = t.lTod; $('#l-show').textContent = t.lShow;
+    chips($('#views'), Object.keys(t.views).map(function (k) { return [k, t.views[k]]; }), function (k) {
+      if (k === 'eclatebat') { dropAutoEx('bat'); showBat(true, !v.exploded('bat') || autoEx.bat); return; }
+      dropAutoEx(k === 'maquette' ? 'main' : null);
+      if (k === 'maquette' && v.exploded('bat')) setExplode(false, false, 'bat');
+      v.select(null); v.view(k);
+    });
+    chips($('#tod'), Object.keys(t.tods).map(function (k) { return [k, t.tods[k], null, true]; }), function (k) { setTod(k); });
+    var show = $('#show'); show.innerHTML = '';
+    var seg = document.createElement('div'); seg.className = 'seg'; seg.setAttribute('role', 'group'); show.appendChild(seg);
+    chips(seg, [['avant', t.avant, 'b-avant', true], ['apres', t.apres, 'b-apres', true]], function (k) {
+      setVer(k, false);
+      if (k === 'avant') { if (v.exploded('bat')) setExplode(false, false, 'bat'); v.select(null); v.view('ensemble'); }
+    });
+    var rest = document.createElement('div'); rest.className = 'row'; show.appendChild(rest);
+    chips(rest, [['bat', t.bat, 'b-bat', true], ['eclate', t.eclate, 'b-eclate', true], ['anim', t.anim, 'b-anim', true]], function (k) {
+      if (k === 'bat') { if (!v.exploded('bat') && v.exploded('main')) setExplode(false, false, 'main'); showBat(!v.exploded('bat'), false); }
+      else if (k === 'eclate') {
+        var on = !v.exploded('main'); setExplode(on, false, 'main');
+        if (on) { if (v.exploded('bat')) setExplode(false, false, 'bat'); v.select(null); v.view('maquette'); }
+      } else {
+        var on2 = !v.mode('anim');
+        if (on2) {
+          if (v.mode('ver') !== 'apres') setVer('apres');
+          if (v.mode('tod') === 'jour') setTod('nuit');
+          dropAutoEx(null);
+          v.select(null); v.view(v.exploded('bat') ? 'eclatebat' : 'facade');
+        }
+        setAnim(on2);
+      }
+    });
+    syncShow();
+    renderList();
+    document.querySelectorAll('.lang button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.lang === lang ? 'true' : 'false'); });
+    card(v.selected());
+    if (present) present.refresh();
+    v.refresh();
+  }
+  $('#palette').innerHTML = ['#63C2A6', '#3B95DB', '#2A4F9E', '#E0245A', '#E8273D', '#F26A21'].map(function (c) {
+    return '<div><i style="background:' + c + '"></i><code>' + c + '</code></div>';
+  }).join('');
+
+  /* mode présentation, partage, téléchargement */
+  present = Present.attach({
+    vp: $('.vp'), viewer: v,
+    title: function () { return lang === 'fr' ? 'La façade SVF' : 'The SVF facade'; },
+    labels: function () { return T().pz; },
+    panels: [$('.ctrls')], caption: $('#card'), strip: $('#list'),
+    step: step
+  });
+  function shareHash() {
+    var tk = [];
+    if (present.active()) tk.push('pres');
+    if (v.mode('tod') !== 'jour') tk.push(v.mode('tod'));
+    if (v.mode('ver') === 'avant') tk.push('avant');
+    if (v.exploded('bat') && !autoEx.bat) tk.push('bat');
+    if (v.exploded('main') && !autoEx.main) tk.push('eclate');
+    if (v.mode('anim')) tk.push('anim');
+    if (v.selected()) tk.push(v.selected());
+    return tk.join('-');
+  }
+  $('#b-present').addEventListener('click', function () { present.enter(true); });
+  $('#b-share').addEventListener('click', function () { Present.share(T().pz, shareHash()); });
+  if (Present.canDownload()) {
+    $('#b-dl').hidden = false;
+    $('#b-dl').addEventListener('click', function () { Present.download('facade.html', T().pz); });
+  }
+
+  document.querySelectorAll('.lang button').forEach(function (b) {
+    b.addEventListener('click', function () { lang = b.dataset.lang; try { localStorage.setItem('maquettes-lang', lang); } catch (e) { /* ignoré */ } render(); });
+  });
+  $('#b-spin').addEventListener('click', function () { v.setAuto(!v.isAuto()); });
+  $('#b-in').addEventListener('click', function () { v.zoom(0.8); });
+  $('#b-out').addEventListener('click', function () { v.zoom(1.25); });
+  $('#b-explore').addEventListener('click', function () {
+    var on = this.getAttribute('aria-pressed') !== 'true';
+    this.setAttribute('aria-pressed', on ? 'true' : 'false'); v.setExplore(on);
+    $('#t-hint').textContent = on ? T().hintExplore : T().hint;
+  });
+  /* lien « Toutes les maquettes » : retour en arrière si on vient de la page d'accueil */
+  (function () {
+    var a = document.getElementById('t-home');
+    if (!a) return;
+    a.addEventListener('click', function (e) {
+      try {
+        if (document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1) { e.preventDefault(); history.back(); }
+      } catch (err) { /* lien normal */ }
+    });
+  })();
+  render();
+
+  /* adresse avec ancre : #pres, #nuit, #bat, #eclate, #anim, #avant ou un repère (séparés par des tirets) */
+  var tokens = Present.hashTokens(), picked = null, wantPres = false, wantAnim = false, view = null;
+  tokens.forEach(function (tk) {
+    if (tk === 'pres') wantPres = true;
+    else if (TEXTES.fr.tods[tk]) setTod(tk);
+    else if (tk === 'avant' || tk === 'apres') setVer(tk, false);
+    else if (tk === 'bat') { setVer('apres'); setExplode(true, false, 'bat'); view = 'eclatebat'; }
+    else if (tk === 'eclate') { setExplode(true, false, 'main'); view = view || 'maquette'; }
+    else if (tk === 'anim') wantAnim = true;
+    else if (pinOf(tk)) picked = tk;
+    else if (scene.views[tk]) view = tk;
+  });
+  if (wantAnim) {
+    if (v.mode('ver') !== 'apres') setVer('apres');
+    if (v.mode('tod') === 'jour') setTod('nuit');
+    setAnim(true); view = view || 'facade';
+  }
+  if (picked) go(picked);
+  else if (view === 'eclatebat' && !v.exploded('bat')) showBat(true, true);
+  else if (view) v.view(view, 0);
+  if (wantPres) present.enter(false);
+  if (!reduce && !picked && !tokens.length) setTimeout(function () { if (!v.selected()) v.setAuto(true); }, 900);
+})();
+</script>
+</body>
+</html>
