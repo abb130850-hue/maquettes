@@ -3,11 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Bo's Farm · identité</title>
-<meta name="description" content="Le logo de Bo's Farm : le nom dessiné dans le logo, six versions, les couleurs et un relief en 3D.">
+<meta name="robots" content="noindex, nofollow">
+<title>Bo's Harvest Farm · identité</title>
+<meta name="description" content="Le logo de Bo's Harvest Farm : le nom dessiné dans le logo, six versions, les couleurs et un relief en 3D.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Bo's Farm · le logo">
+<meta property="og:title" content="Bo's Harvest Farm · le logo">
 <meta property="og:description" content="Le nom dessiné dans le logo : la pousse, le tunnel, la graine.">
+<meta property="og:image" content="https://abb130850-hue.github.io/maquettes/apercu-logo.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <link rel="canonical" href="https://abb130850-hue.github.io/maquettes/logo.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -172,6 +176,7 @@ html.dk-on .var .art { aspect-ratio: 16 / 9; padding: 14px; }
 </style>
 </head>
 <body>
+<noscript><div style="max-width:640px;margin:24px auto;padding:16px 18px;border-radius:12px;border:1px solid #CCC;background:#FFF;color:#1F2B33;font:16px/1.5 system-ui,sans-serif">Cette maquette a besoin de JavaScript : ouvre ce fichier dans Safari, Chrome ou Edge, ou va sur <b>abb130850-hue.github.io/maquettes</b>.<br>This model needs JavaScript: open this file in Safari, Chrome or Edge, or go to <b>abb130850-hue.github.io/maquettes</b>.</div></noscript>
 <div class="wrap">
   <header class="top">
     <div class="head">
@@ -219,7 +224,7 @@ html.dk-on .var .art { aspect-ratio: 16 / 9; padding: 14px; }
   <section class="section" id="s-typo">
     <div class="head"><p class="eyebrow" id="t-typo-k"></p><h2 id="t-typo-h"></h2></div>
     <div class="type">
-      <div><h3 id="t-typo1-h"></h3><p id="t-typo1-p"></p><svg id="specimen" role="img" aria-label="BO'S FARM"></svg></div>
+      <div><h3 id="t-typo1-h"></h3><p id="t-typo1-p"></p><svg id="specimen" role="img" aria-label="BO'S HARVEST FARM"></svg></div>
       <div><h3 id="t-typo2-h"></h3><p id="t-typo2-p"></p><p class="specimen">MARAÎCHAGE</p><p class="specimen2">Saint-Louis · Louga · Dakar · 0123456789</p></div>
     </div>
   </section>
@@ -252,8 +257,8 @@ html.dk-on .var .art { aspect-ratio: 16 / 9; padding: 14px; }
 </div>
 
 <script>
-/* Lettrage construit « BO'S FARM » : cercles et traits de 1,8 unité, hauteur de capitale 10.
-   Le O est la pousse dans son anneau, le A un tunnel de serre, l'apostrophe une graine. */
+/* Lettrage construit « BO'S HARVEST FARM » : cercles et traits de 1,8 unité, hauteur de capitale 10.
+   Le O est la pousse dans son anneau, les A des tunnels de serre, l'apostrophe une graine. */
 (function (root) {
   'use strict';
   var PI = Math.PI, DEG = PI / 180;
@@ -350,6 +355,21 @@ html.dk-on .var .art { aspect-ratio: 16 / 9; padding: 14px; }
   function M() {
     return { w: 9.2, parts: [part([[0, 0], [0, 10], [2.3, 10], [4.6, 4.0], [6.9, 10], [9.2, 10], [9.2, 0], [7.4, 0], [7.4, 6.3], [5.45, 1.5], [3.75, 1.5], [1.8, 6.3], [1.8, 0]])] };
   }
+  function H() {
+    var w = 6.6;
+    return { w: w, parts: [part([[0, 0], [S, 0], [S, 4.1], [w - S, 4.1], [w - S, 0], [w, 0], [w, 10], [w - S, 10], [w - S, 5.9], [S, 5.9], [S, 10], [0, 10]])] };
+  }
+  function E() {
+    return { w: 5.3, parts: [part([[0, 0], [5.3, 0], [5.3, S], [S, S], [S, 4.1], [4.3, 4.1], [4.3, 5.9], [S, 5.9], [S, 8.2], [5.3, 8.2], [5.3, 10], [0, 10]])] };
+  }
+  function T() {
+    var w = 6.4, a = (w - S) / 2, b = (w + S) / 2;
+    return { w: w, parts: [part([[a, 0], [b, 0], [b, 8.2], [w, 8.2], [w, 10], [0, 10], [0, 8.2], [a, 8.2]])] };
+  }
+  function V() {
+    /* deux jambages de 1,8 d'épaisseur qui se rejoignent sur un pied plat, comme le M */
+    return { w: 7.8, parts: [part([[0, 10], [2.0, 10], [3.9, 3.45], [5.8, 10], [7.8, 10], [4.9, 0], [2.9, 0]])] };
+  }
   var ICON = { Ro: 5.25, ri: 5.25 - S };
   /* le O : anneau + pousse, centré en (cx, cy) */
   function iconParts(cx, cy) {
@@ -361,27 +381,41 @@ html.dk-on .var .art { aspect-ratio: 16 / 9; padding: 14px; }
     parts.push(part(leaf(cx + 0.26, cy - 0.38, 31, 2.9, 1.05), [], 'leaf'));
     return parts;
   }
-  /* « BO'S FARM » sur une ligne, ou « BO'S / FARM » sur deux */
+  /* « BO'S HARVEST FARM » : sur une ligne, ou empilé en trois lignes (BO'S en grand, HARVEST et FARM dessous).
+     Ordre des pièces (utilisé par la page logo) : B, l'anneau du O, la terre, la tige, deux feuilles, l'apostrophe, S,
+     puis H A R V E S T, puis F A R M. */
+  var GLYPH = { H: H, A: A, R: Rg, V: V, E: E, S: Sg, T: T, F: F, M: M };
+  var KERN = { RV: -0.5 };   /* le R et le V sont ouverts : on les rapproche pour un espacement régulier à l'œil */
+  var WORDS = { harvest: 'HARVEST', farm: 'FARM' };
+  function sc(p, k, dx, dy) {
+    var f = function (pts) { return pts.map(function (q) { return [q[0] * k + dx, q[1] * k + dy]; }); };
+    return { outer: f(p.outer), holes: p.holes.map(f), kind: p.kind };
+  }
+  function wordW(str, gap) {
+    var w = 0; str.split('').forEach(function (c, i) { w += GLYPH[c]().w + (i ? gap + (KERN[str[i - 1] + c] || 0) : 0); }); return w;
+  }
   function wordmark(stacked) {
-    var out = [], x = 0, baseY = 0;
-    function put(g, dy) { g.parts.forEach(function (p) { out.push({ outer: moved(p.outer, x, dy || 0), holes: p.holes.map(function (h) { return moved(h, x, dy || 0); }), kind: p.kind }); }); x += g.w; }
-    put(B()); x += 1.2;
+    var out = [], x = 0;
+    function put(g, k, dx, dy) { g.parts.forEach(function (p) { out.push(sc(p, k, dx + x * k, dy)); }); x += g.w; }
+    function word(str, gap, k, dx, dy) { str.split('').forEach(function (c, i) { if (i) x += gap + (KERN[str[i - 1] + c] || 0); put(GLYPH[c](), k, dx, dy); }); }
+    put(B(), 1, 0, 0); x += 1.2;
     var cx = x + ICON.Ro; iconParts(cx, 5).forEach(function (p) { out.push(p); }); x = cx + ICON.Ro + 0.65;
     out.push(part(leaf(x + 0.25, 6.95, 80, 3.05, 0.88), [], 'leaf')); x += 1.55;
-    put(Sg());
+    put(Sg(), 1, 0, 0);
     var line1 = x;
-    if (stacked) { x = 0; baseY = -14; } else { x += 3.3; }
-    var x0 = x;
-    put(F(), baseY); x += 1.1; put(A(), baseY); x += 1.1; put(Rg(), baseY); x += 1.1; put(M(), baseY);
-    var w2 = x - x0;
-    if (stacked) {
-      var off = (line1 - w2) / 2;
-      out.forEach(function (p) {
-        if (p.outer[0][1] < -1) { p.outer = moved(p.outer, off, 0); p.holes = p.holes.map(function (h) { return moved(h, off, 0); }); }
-      });
-      return { parts: out, w: Math.max(line1, w2), h: 24.25, minY: -14.25, maxY: 10.25 };
+    if (!stacked) {
+      x += 3.3; word(WORDS.harvest, 1.1, 1, 0, 0);
+      x += 3.3; word(WORDS.farm, 1.1, 1, 0, 0);
+      return { parts: out, w: x, h: 10.5, minY: -0.25, maxY: 10.25 };
     }
-    return { parts: out, w: x, h: 10.5, minY: -0.25, maxY: 10.25 };
+    /* empilé : deux lignes à demi-taille, un peu plus espacées pour rester lisibles en petit */
+    var k = 0.5, gap = 1.6, wH = wordW(WORDS.harvest, gap) * k, wF = wordW(WORDS.farm, gap) * k, W = Math.max(line1, wH);
+    var shift = (W - line1) / 2;
+    if (shift > 0) out = out.map(function (p) { return sc(p, 1, shift, 0); });
+    x = 0; word(WORDS.harvest, gap, k, (W - wH) / 2, -2.4 - 10 * k);
+    x = 0; word(WORDS.farm, gap, k, (W - wF) / 2, -2.4 - 10 * k - 1.7 - 10 * k);
+    var minY = -2.4 - 10 * k - 1.7 - 10 * k;
+    return { parts: out, w: W, h: 10.25 - minY, minY: minY, maxY: 10.25 };
   }
   function icon() { return { parts: iconParts(0, 0), w: 2 * ICON.Ro, h: 2 * ICON.Ro, minY: -ICON.Ro, maxY: ICON.Ro }; }
   function bbox(g) {
@@ -400,7 +434,7 @@ html.dk-on .var .art { aspect-ratio: 16 / 9; padding: 14px; }
 
   root.BosBrand = {
     S: S, R: R, r: r, ICON: ICON, arc: arc, leaf: leaf,
-    letters: { B: B, S: Sg, F: F, A: A, R: Rg, M: M },
+    letters: { B: B, S: Sg, F: F, A: A, R: Rg, M: M, H: H, E: E, T: T, V: V },
     iconParts: iconParts, wordmark: wordmark, icon: icon, pathOf: pathOf, bbox: bbox
   };
 })(window);
@@ -1166,7 +1200,7 @@ html.dk-on .var .art { aspect-ratio: 16 / 9; padding: 14px; }
 
 </script>
 <script>
-/* Logo Bo's Farm en relief : l'icône sur un socle rond, ou l'enseigne complète sur un socle long. */
+/* Logo Bo's Harvest Farm en relief : l'icône sur un socle rond, ou l'enseigne complète sur un socle long. */
 (function (root) {
   'use strict';
   var M = root.M3, B = M.B, nrm = M.nrm;
@@ -1195,13 +1229,14 @@ html.dk-on .var .art { aspect-ratio: 16 / 9; padding: 14px; }
       z0 = -0.75; z1 = 0.75;
       clip = []; for (i = 0; i < 48; i++) { var a = i / 48 * Math.PI * 2; clip.push([Math.cos(a) * 8.6, 0, Math.sin(a) * 8.6]); }
     } else {
-      var wm = root.BosBrand.wordmark(false); w2 = wm.w / 2;
+      /* l'enseigne en relief reprend la version empilée : BO'S en grand, HARVEST et FARM dessous */
+      var wm = root.BosBrand.wordmark(true), lift = 0.3 - wm.minY; w2 = wm.w / 2;
       b.box(-w2 - 3, -1.4, -3.2, w2 + 3, 0, 3.2, '#C9CFCF', { shadow: false, tcs: 'podiumS', edge: 0.4 }).forEach(function (p) {
         if (p.n[1] > 0.5) { p.layer = 0; p.zi = 1000; p.flat = true; p.tcs = 'podium'; }
       });
       b.box(-w2 - 0.6, 0, -0.55, w2 + 0.6, 0.3, 0.55, '#4A535B', { obj: 'logo', edge: 0.4 });
       parts = wm.parts;
-      map = function (x, y, z) { return [x - w2, y + 0.3, z]; };
+      map = function (x, y, z) { return [x - w2, y + lift, z]; };
       z0 = -0.9; z1 = 0.9;
       clip = [[-w2 - 3, 0, -3.2], [w2 + 3, 0, -3.2], [w2 + 3, 0, 3.2], [-w2 - 3, 0, 3.2]];
     }
@@ -1214,10 +1249,10 @@ html.dk-on .var .art { aspect-ratio: 16 / 9; padding: 14px; }
     });
     var light = nrm([-0.4, 0.86, 0.42]);
     var views = big ? {
-      trois: { yaw: 0.5, pitch: 0.16, dist: 70, tx: 0, ty: 4.6, tz: 0 },
-      face: { yaw: 0, pitch: 0.05, dist: 68, tx: 0, ty: 5.2, tz: 0 },
-      profil: { yaw: 1.3, pitch: 0.12, dist: 62, tx: 0, ty: 4.8, tz: 0 },
-      dessus: { yaw: 0.25, pitch: 1.0, dist: 76, tx: 0, ty: 2, tz: 0 }
+      trois: { yaw: 0.5, pitch: 0.14, dist: 64, tx: 0, ty: 11.6, tz: 0 },
+      face: { yaw: 0, pitch: 0.04, dist: 60, tx: 0, ty: 12.2, tz: 0 },
+      profil: { yaw: 1.3, pitch: 0.1, dist: 56, tx: 0, ty: 11.8, tz: 0 },
+      dessus: { yaw: 0.25, pitch: 0.95, dist: 70, tx: 0, ty: 6, tz: 0 }
     } : {
       trois: { yaw: 0.62, pitch: 0.2, dist: 34, tx: 0, ty: 4.8, tz: 0 },
       face: { yaw: 0, pitch: 0.06, dist: 32, tx: 0, ty: 5.6, tz: 0 },
@@ -1514,13 +1549,18 @@ html.dk-on .var .art { aspect-ratio: 16 / 9; padding: 14px; }
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
   }
   /* toutes les pages du dossier dans un seul fichier .zip (lisible hors ligne, liens entre pages conservés) */
-  function downloadAll(list, zipName, labels, folder) {
+  function downloadAll(list, zipName, labels, folder, extra) {
     if (!window.TextEncoder) { toast(labels.fail); return; }
+    var pre = folder ? folder + '/' : '', enc = new TextEncoder();
     Promise.all(list.map(function (f) {
       return fetch(f, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(f); return r.arrayBuffer(); })
-        .then(function (b) { return { name: (folder ? folder + '/' : '') + f, data: new Uint8Array(b) }; });
-    })).then(function (files) { saveBlob(makeZip(files), zipName); })
-      .catch(function () { toast(labels.fail); });
+        .then(function (b) { return { name: pre + f, data: new Uint8Array(b) }; }, function () { return null; });
+    })).then(function (files) {
+      files = files.filter(Boolean);
+      if (!files.length) throw new Error('vide');
+      (extra || []).forEach(function (x) { files.push({ name: pre + x.name, data: enc.encode(x.text) }); });
+      saveBlob(makeZip(files), zipName);
+    }).catch(function () { toast(labels.fail); });
   }
 
   /* ---------- diaporama des sections d'une page (page du logo) ---------- */
@@ -1676,15 +1716,15 @@ html.dk-on .var .art { aspect-ratio: 16 / 9; padding: 14px; }
    ===================================================================== */
 const TEXTES = {
   fr: {
-    eyebrow: 'Bo\'s Farm · identité visuelle', title: 'Le nom, dessiné dans le logo',
-    lede: 'Un lettrage construit sur mesure : le O est une pousse dans son anneau, le A un tunnel de serre, l\'apostrophe une graine.',
+    eyebrow: 'Bo\'s Harvest Farm · identité visuelle', title: 'Le nom, dessiné dans le logo',
+    lede: 'Un lettrage construit sur mesure : le O est une pousse dans son anneau, les A des tunnels de serre, l\'apostrophe une graine.',
     replay: 'Rejouer', grid: 'Grille de construction', neg: 'Version négative',
-    dlSvg: 'Télécharger SVG (Illustrator)', dlPng: 'Télécharger PNG (Procreate)', hint: 'Glisse pour tourner',
+    dlSvg: 'Exporter SVG (Illustrator)', dlPng: 'Exporter PNG (Procreate)', hint: 'Glisse pour tourner',
     tagline: 'MARAÎCHAGE · SÉNÉGAL',
     ideaK: 'L\'idée', ideaH: 'Trois détails qui racontent la ferme', ideaL: 'Toutes les lettres sont dessinées avec les mêmes éléments : des cercles de rayon 2,95, un trait de 1,8 et une hauteur de 10 unités. C\'est ce qui rend l\'ensemble cohérent.',
     ideas: [
       ['Le O est une pousse', 'La pousse grandit dans son anneau : le cycle des saisons et la promesse de la récolte.'],
-      ['Le A est un tunnel de serre', 'La lettre reprend l\'arche des quatre serres de la ferme.'],
+      ['Les A sont des tunnels de serre', 'Les deux A de HARVEST et de FARM reprennent l\'arche des quatre serres de la ferme.'],
       ['L\'apostrophe est une graine', 'Un détail discret qui se remarque au deuxième regard.']
     ],
     varK: 'Déclinaisons', varH: 'Un logo, six versions',
@@ -1723,15 +1763,15 @@ const TEXTES = {
     pz: { exit: 'Quitter', prev: 'Section précédente', next: 'Section suivante', copied: 'Lien copié', copyHint: 'Copie ce lien :', close: 'Fermer', link: 'Lien', fail: 'Téléchargement impossible ici' }
   },
   en: {
-    eyebrow: 'Bo\'s Farm · visual identity', title: 'The name, drawn into the logo',
-    lede: 'Custom-built lettering: the O is a sprout in its ring, the A a greenhouse tunnel, the apostrophe a seed.',
+    eyebrow: 'Bo\'s Harvest Farm · visual identity', title: 'The name, drawn into the logo',
+    lede: 'Custom-built lettering: the O is a sprout in its ring, the As greenhouse tunnels, the apostrophe a seed.',
     replay: 'Replay', grid: 'Construction grid', neg: 'Negative version',
-    dlSvg: 'Download SVG (Illustrator)', dlPng: 'Download PNG (Procreate)', hint: 'Drag to rotate',
+    dlSvg: 'Export SVG (Illustrator)', dlPng: 'Export PNG (Procreate)', hint: 'Drag to rotate',
     tagline: 'MARKET GARDENING · SENEGAL',
     ideaK: 'The idea', ideaH: 'Three details that tell the farm\'s story', ideaL: 'Every letter is drawn from the same parts: circles with a 2.95 radius, a 1.8 stroke and a 10-unit height. That is what makes it hold together.',
     ideas: [
       ['The O is a sprout', 'The sprout grows inside its ring: the cycle of seasons and the promise of the harvest.'],
-      ['The A is a greenhouse tunnel', 'The letter echoes the arch of the farm\'s four greenhouses.'],
+      ['The As are greenhouse tunnels', 'The two As in HARVEST and FARM echo the arch of the farm\'s four greenhouses.'],
       ['The apostrophe is a seed', 'A quiet detail you notice on second look.']
     ],
     varK: 'Variations', varH: 'One logo, six versions',
@@ -1850,7 +1890,7 @@ const TEXTES = {
   var board = $('#board');
   function renderBoard(play) {
     var r = lockup({ k: 12, pad: 3, anim: true, grid: true, tagline: T().tagline });
-    board.innerHTML = svgWrap(r, 'Bo\'s Farm');
+    board.innerHTML = svgWrap(r, 'Bo\'s Harvest Farm');
     board.querySelectorAll('[data-a]').forEach(function (el) { el.classList.add(el.getAttribute('data-a')); });
     if (play && !reduce) { board.classList.remove('play'); void board.offsetWidth; board.classList.add('play'); }
   }
@@ -1874,19 +1914,44 @@ const TEXTES = {
     document.body.appendChild(a); a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   }
-  function fileName(ext) { return 'bos-farm-logo' + (board.classList.contains('neg') ? '-negatif' : '') + '.' + ext; }
+  function fileName(ext) { return 'bos-harvest-farm-logo' + (board.classList.contains('neg') ? '-negatif' : '') + '.' + ext; }
+  /* les fichiers sont préparés à l'avance : sur iPad et iPhone, le bouton ouvre directement le menu Partager
+     (Procreate, Illustrator, Enregistrer dans Fichiers, AirDrop) ; sur ordinateur, il télécharge le fichier */
+  var ready = { svg: null, png: null };
+  var touchDevice = /iPhone|iPad|iPod|Android/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  function makeFile(data, name, type) {
+    try { return new File([data], name, { type: type }); } catch (e) { var b = new Blob([data], { type: type }); b.name = name; return b; }
+  }
+  function prepareExports() {
+    var svg = exportSVG();
+    ready.svg = makeFile(svg, fileName('svg'), 'image/svg+xml');
+    ready.png = null;
+    var img = new Image();
+    img.onload = function () {
+      var w = 2400, h = Math.round(w * img.height / img.width), cv = document.createElement('canvas');
+      cv.width = w; cv.height = h; cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      cv.toBlob(function (b) { if (b) ready.png = makeFile(b, fileName('png'), 'image/png'); }, 'image/png');
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+  function canShareFile(f) {
+    try { return !!(touchDevice && f && navigator.share && navigator.canShare && navigator.canShare({ files: [f] })); } catch (e) { return false; }
+  }
+  function give(kind) {
+    var f = ready[kind];
+    if (!f) { setTimeout(function () { if (ready[kind]) save(ready[kind], ready[kind].name); }, 600); return; }
+    if (canShareFile(f)) {
+      navigator.share({ files: [f] }).catch(function (e) { if (!e || e.name !== 'AbortError') save(f, f.name); });
+      return;
+    }
+    save(f, f.name);
+  }
   if (!framed) {
     $('#b-svg').hidden = false; $('#b-png').hidden = false;
-    $('#b-svg').addEventListener('click', function () { save(new Blob([exportSVG()], { type: 'image/svg+xml' }), fileName('svg')); });
-    $('#b-png').addEventListener('click', function () {
-      var svg = exportSVG(), img = new Image();
-      img.onload = function () {
-        var w = 2400, h = Math.round(w * img.height / img.width), cv = document.createElement('canvas');
-        cv.width = w; cv.height = h; cv.getContext('2d').drawImage(img, 0, 0, w, h);
-        cv.toBlob(function (b) { if (b) save(b, fileName('png')); }, 'image/png');
-      };
-      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-    });
+    prepareExports();
+    $('#b-svg').addEventListener('click', function () { give('svg'); });
+    $('#b-png').addEventListener('click', function () { give('png'); });
+    $('#b-neg').addEventListener('click', prepareExports);
   }
 
   /* ---------- l'idée ---------- */
@@ -1907,11 +1972,11 @@ const TEXTES = {
   /* ---------- déclinaisons ---------- */
   var C = { ink: '#1F2B33', leaf: '#2E9A62', sand: '#E6D8B6', cream: '#F4EFE3', paper: '#FFFFFF' };
   function badge() {
-    var s = '<svg viewBox="0 0 220 220" xmlns:xlink="http://www.w3.org/1999/xlink" role="img" aria-label="Cachet Bo\'s Farm">';
+    var s = '<svg viewBox="0 0 220 220" xmlns:xlink="http://www.w3.org/1999/xlink" role="img" aria-label="Cachet Bo\'s Harvest Farm">';
     s += '<circle cx="110" cy="110" r="100" fill="' + C.sand + '" stroke="' + C.ink + '" stroke-width="4"/>';
     s += '<circle cx="110" cy="110" r="86" fill="none" stroke="' + C.ink + '" stroke-width="1.4"/>';
     s += '<path id="bf-top" d="M 38 110 A 72 72 0 0 1 182 110" fill="none"/><path id="bf-bot" d="M 30 110 A 80 80 0 0 0 190 110" fill="none"/>';
-    s += '<text font-family="Archivo, system-ui, sans-serif" font-weight="800" font-size="17" letter-spacing="3" fill="' + C.ink + '"><textPath href="#bf-top" xlink:href="#bf-top" startOffset="50%" text-anchor="middle">BO\'S FARM</textPath></text>';
+    s += '<text font-family="Archivo, system-ui, sans-serif" font-weight="800" font-size="14.5" letter-spacing="2" fill="' + C.ink + '"><textPath href="#bf-top" xlink:href="#bf-top" startOffset="50%" text-anchor="middle">BO\'S HARVEST FARM</textPath></text>';
     s += '<text font-family="JetBrains Mono, ui-monospace, monospace" font-size="9.5" letter-spacing="2" fill="' + C.ink + '"><textPath href="#bf-bot" xlink:href="#bf-bot" startOffset="50%" text-anchor="middle">' + T().tagline + '</textPath></text>';
     s += '<circle cx="34" cy="116" r="2.6" fill="' + C.leaf + '"/><circle cx="186" cy="116" r="2.6" fill="' + C.leaf + '"/>';
     s += iconSVG(7.2, 110, 112, { ink: C.ink, leaf: C.leaf });
@@ -1920,16 +1985,16 @@ const TEXTES = {
   function variants() {
     var t = T(), out = [];
     var v1 = lockup({ k: 8, pad: 2, tagline: t.tagline, colors: { ink: C.ink, leaf: C.leaf, tag: '#5A625C' } });
-    out.push([svgWrap(v1, 'Bo\'s Farm'), C.sand]);
+    out.push([svgWrap(v1, 'Bo\'s Harvest Farm'), C.sand]);
     var v2 = lockup({ k: 8, pad: 2, stacked: true, tagline: t.tagline, colors: { ink: C.ink, leaf: C.leaf, tag: '#5A625C' } });
-    out.push([svgWrap(v2, 'Bo\'s Farm'), C.paper]);
+    out.push([svgWrap(v2, 'Bo\'s Harvest Farm'), C.paper]);
     var ic = '<svg viewBox="0 0 220 220" role="img" aria-label="Icône"><rect x="10" y="10" width="200" height="200" rx="46" fill="' + C.leaf + '"/>' + iconSVG(14, 110, 110, { ink: C.cream, leaf: '#FFFFFF' }) + '</svg>';
     out.push([ic, C.sand]);
     out.push([badge(), C.paper]);
     var v5 = lockup({ k: 8, pad: 2, tagline: t.tagline, colors: { ink: C.ink, leaf: C.ink, tag: C.ink } });
-    out.push([svgWrap(v5, 'Bo\'s Farm'), C.paper]);
+    out.push([svgWrap(v5, 'Bo\'s Harvest Farm'), C.paper]);
     var v6 = lockup({ k: 8, pad: 2, tagline: t.tagline, colors: { ink: C.cream, leaf: '#4BC487', tag: '#BFC6C2' } });
-    out.push([svgWrap(v6, 'Bo\'s Farm'), C.ink]);
+    out.push([svgWrap(v6, 'Bo\'s Harvest Farm'), C.ink]);
     return out;
   }
 
@@ -1990,7 +2055,7 @@ const TEXTES = {
     $('#t-eyebrow').textContent = t.eyebrow; $('#t-title').textContent = t.title; $('#t-lede').textContent = t.lede;
     $('#b-replay').textContent = t.replay; $('#b-grid').textContent = t.grid; $('#b-neg').textContent = t.neg;
     $('#b-svg').textContent = t.dlSvg; $('#b-png').textContent = t.dlPng; $('#t-hint').textContent = t.hint;
-    document.title = 'Bo\'s Farm · ' + (lang === 'fr' ? 'le logo' : 'the logo');
+    document.title = 'Bo\'s Harvest Farm · ' + (lang === 'fr' ? 'le logo' : 'the logo');
     $('#v3d').setAttribute('aria-label', t.h3d);
     renderBoard(play);
     $('#t-idea-k').textContent = t.ideaK; $('#t-idea-h').textContent = t.ideaH; $('#t-idea-l').textContent = t.ideaL;
@@ -2023,7 +2088,7 @@ const TEXTES = {
   var SECTIONS = [['logo', ['.top', '#s-logo']], ['idee', ['#s-idee']], ['versions', ['#s-versions']], ['couleurs', ['#s-couleurs']],
     ['typo', ['#s-typo']], ['relief', ['#s-relief']], ['situation', ['#s-situation']]];
   deck = Present.deck({
-    title: function () { return lang === 'fr' ? 'Bo\'s Farm · le logo' : 'Bo\'s Farm · the logo'; },
+    title: function () { return lang === 'fr' ? 'Bo\'s Harvest Farm · le logo' : 'Bo\'s Harvest Farm · the logo'; },
     labels: function () { return T().pz; },
     sections: SECTIONS.map(function (sc) {
       return { id: sc[0], els: sc[1].map(function (q) { return $(q); }), label: function () { return T().deck[sc[0]]; } };

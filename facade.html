@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
 <title>SVF · façade 3D</title>
 <meta name="description" content="Ton logo SVF devenu une tour en mur-rideau, en 3D : fais-la tourner, éclate le bâtiment étage par étage, démonte la façade couche par couche et passe en mode nuit.">
 <meta property="og:type" content="website">
@@ -111,6 +112,7 @@ h1 { margin: 0; font-family: var(--font-display); font-stretch: 118%; font-weigh
 </style>
 </head>
 <body>
+<noscript><div style="max-width:640px;margin:24px auto;padding:16px 18px;border-radius:12px;border:1px solid #CCC;background:#FFF;color:#1F2B33;font:16px/1.5 system-ui,sans-serif">Cette maquette a besoin de JavaScript : ouvre ce fichier dans Safari, Chrome ou Edge, ou va sur <b>abb130850-hue.github.io/maquettes</b>.<br>This model needs JavaScript: open this file in Safari, Chrome or Edge, or go to <b>abb130850-hue.github.io/maquettes</b>.</div></noscript>
 <div class="wrap">
   <header class="top">
     <div class="head">
@@ -1706,13 +1708,18 @@ h1 { margin: 0; font-family: var(--font-display); font-stretch: 118%; font-weigh
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
   }
   /* toutes les pages du dossier dans un seul fichier .zip (lisible hors ligne, liens entre pages conservés) */
-  function downloadAll(list, zipName, labels, folder) {
+  function downloadAll(list, zipName, labels, folder, extra) {
     if (!window.TextEncoder) { toast(labels.fail); return; }
+    var pre = folder ? folder + '/' : '', enc = new TextEncoder();
     Promise.all(list.map(function (f) {
       return fetch(f, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(f); return r.arrayBuffer(); })
-        .then(function (b) { return { name: (folder ? folder + '/' : '') + f, data: new Uint8Array(b) }; });
-    })).then(function (files) { saveBlob(makeZip(files), zipName); })
-      .catch(function () { toast(labels.fail); });
+        .then(function (b) { return { name: pre + f, data: new Uint8Array(b) }; }, function () { return null; });
+    })).then(function (files) {
+      files = files.filter(Boolean);
+      if (!files.length) throw new Error('vide');
+      (extra || []).forEach(function (x) { files.push({ name: pre + x.name, data: enc.encode(x.text) }); });
+      saveBlob(makeZip(files), zipName);
+    }).catch(function () { toast(labels.fail); });
   }
 
   /* ---------- diaporama des sections d'une page (page du logo) ---------- */

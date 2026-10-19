@@ -3,11 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Bo's Farm · maquette 3D</title>
-<meta name="description" content="La maquette 3D de Bo's Farm : 4 serres, pleine terre, espace élevage, eau de pluie, sous-sol et deux bergers allemands, de jour comme de nuit.">
+<meta name="robots" content="noindex, nofollow">
+<title>Bo's Harvest Farm · maquette 3D</title>
+<meta name="description" content="La maquette 3D de Bo's Harvest Farm : 4 serres, pleine terre, espace élevage, eau de pluie, sous-sol et deux bergers allemands, de jour comme de nuit.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Bo's Farm · la maquette 3D">
+<meta property="og:title" content="Bo's Harvest Farm · la maquette 3D">
 <meta property="og:description" content="4 serres, pleine terre, élevage, eau de pluie, sous-sol et deux bergers allemands. Fais tourner la maquette.">
+<meta property="og:image" content="https://abb130850-hue.github.io/maquettes/apercu-ferme.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <link rel="canonical" href="https://abb130850-hue.github.io/maquettes/ferme.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -51,7 +55,7 @@ button { font: inherit; color: inherit; }
 .wrap { max-width: 1160px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 16px; }
 .top { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: end; justify-content: space-between; }
 .brand { display: grid; gap: 8px; max-width: 70ch; }
-.brand svg { width: min(420px, 78vw); height: auto; display: block; }
+.brand svg { width: min(560px, 88vw); height: auto; display: block; }
 .brand svg .ink { fill: var(--ink); } .brand svg .leaf { fill: var(--green); }
 .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--green); margin: 0; }
 .lede { margin: 0; color: var(--ink-2); font-size: 1.05rem; }
@@ -97,11 +101,12 @@ button { font: inherit; color: inherit; }
 </style>
 </head>
 <body>
+<noscript><div style="max-width:640px;margin:24px auto;padding:16px 18px;border-radius:12px;border:1px solid #CCC;background:#FFF;color:#1F2B33;font:16px/1.5 system-ui,sans-serif">Cette maquette a besoin de JavaScript : ouvre ce fichier dans Safari, Chrome ou Edge, ou va sur <b>abb130850-hue.github.io/maquettes</b>.<br>This model needs JavaScript: open this file in Safari, Chrome or Edge, or go to <b>abb130850-hue.github.io/maquettes</b>.</div></noscript>
 <div class="wrap">
   <header class="top">
     <div class="brand">
       <p class="eyebrow" id="t-eyebrow"></p>
-      <svg id="logo" role="img" aria-label="Bo's Farm"></svg>
+      <svg id="logo" role="img" aria-label="Bo's Harvest Farm"></svg>
       <p class="lede" id="t-lede"></p>
     </div>
     <div class="acts">
@@ -142,8 +147,8 @@ button { font: inherit; color: inherit; }
 </div>
 
 <script>
-/* Lettrage construit « BO'S FARM » : cercles et traits de 1,8 unité, hauteur de capitale 10.
-   Le O est la pousse dans son anneau, le A un tunnel de serre, l'apostrophe une graine. */
+/* Lettrage construit « BO'S HARVEST FARM » : cercles et traits de 1,8 unité, hauteur de capitale 10.
+   Le O est la pousse dans son anneau, les A des tunnels de serre, l'apostrophe une graine. */
 (function (root) {
   'use strict';
   var PI = Math.PI, DEG = PI / 180;
@@ -240,6 +245,21 @@ button { font: inherit; color: inherit; }
   function M() {
     return { w: 9.2, parts: [part([[0, 0], [0, 10], [2.3, 10], [4.6, 4.0], [6.9, 10], [9.2, 10], [9.2, 0], [7.4, 0], [7.4, 6.3], [5.45, 1.5], [3.75, 1.5], [1.8, 6.3], [1.8, 0]])] };
   }
+  function H() {
+    var w = 6.6;
+    return { w: w, parts: [part([[0, 0], [S, 0], [S, 4.1], [w - S, 4.1], [w - S, 0], [w, 0], [w, 10], [w - S, 10], [w - S, 5.9], [S, 5.9], [S, 10], [0, 10]])] };
+  }
+  function E() {
+    return { w: 5.3, parts: [part([[0, 0], [5.3, 0], [5.3, S], [S, S], [S, 4.1], [4.3, 4.1], [4.3, 5.9], [S, 5.9], [S, 8.2], [5.3, 8.2], [5.3, 10], [0, 10]])] };
+  }
+  function T() {
+    var w = 6.4, a = (w - S) / 2, b = (w + S) / 2;
+    return { w: w, parts: [part([[a, 0], [b, 0], [b, 8.2], [w, 8.2], [w, 10], [0, 10], [0, 8.2], [a, 8.2]])] };
+  }
+  function V() {
+    /* deux jambages de 1,8 d'épaisseur qui se rejoignent sur un pied plat, comme le M */
+    return { w: 7.8, parts: [part([[0, 10], [2.0, 10], [3.9, 3.45], [5.8, 10], [7.8, 10], [4.9, 0], [2.9, 0]])] };
+  }
   var ICON = { Ro: 5.25, ri: 5.25 - S };
   /* le O : anneau + pousse, centré en (cx, cy) */
   function iconParts(cx, cy) {
@@ -251,27 +271,41 @@ button { font: inherit; color: inherit; }
     parts.push(part(leaf(cx + 0.26, cy - 0.38, 31, 2.9, 1.05), [], 'leaf'));
     return parts;
   }
-  /* « BO'S FARM » sur une ligne, ou « BO'S / FARM » sur deux */
+  /* « BO'S HARVEST FARM » : sur une ligne, ou empilé en trois lignes (BO'S en grand, HARVEST et FARM dessous).
+     Ordre des pièces (utilisé par la page logo) : B, l'anneau du O, la terre, la tige, deux feuilles, l'apostrophe, S,
+     puis H A R V E S T, puis F A R M. */
+  var GLYPH = { H: H, A: A, R: Rg, V: V, E: E, S: Sg, T: T, F: F, M: M };
+  var KERN = { RV: -0.5 };   /* le R et le V sont ouverts : on les rapproche pour un espacement régulier à l'œil */
+  var WORDS = { harvest: 'HARVEST', farm: 'FARM' };
+  function sc(p, k, dx, dy) {
+    var f = function (pts) { return pts.map(function (q) { return [q[0] * k + dx, q[1] * k + dy]; }); };
+    return { outer: f(p.outer), holes: p.holes.map(f), kind: p.kind };
+  }
+  function wordW(str, gap) {
+    var w = 0; str.split('').forEach(function (c, i) { w += GLYPH[c]().w + (i ? gap + (KERN[str[i - 1] + c] || 0) : 0); }); return w;
+  }
   function wordmark(stacked) {
-    var out = [], x = 0, baseY = 0;
-    function put(g, dy) { g.parts.forEach(function (p) { out.push({ outer: moved(p.outer, x, dy || 0), holes: p.holes.map(function (h) { return moved(h, x, dy || 0); }), kind: p.kind }); }); x += g.w; }
-    put(B()); x += 1.2;
+    var out = [], x = 0;
+    function put(g, k, dx, dy) { g.parts.forEach(function (p) { out.push(sc(p, k, dx + x * k, dy)); }); x += g.w; }
+    function word(str, gap, k, dx, dy) { str.split('').forEach(function (c, i) { if (i) x += gap + (KERN[str[i - 1] + c] || 0); put(GLYPH[c](), k, dx, dy); }); }
+    put(B(), 1, 0, 0); x += 1.2;
     var cx = x + ICON.Ro; iconParts(cx, 5).forEach(function (p) { out.push(p); }); x = cx + ICON.Ro + 0.65;
     out.push(part(leaf(x + 0.25, 6.95, 80, 3.05, 0.88), [], 'leaf')); x += 1.55;
-    put(Sg());
+    put(Sg(), 1, 0, 0);
     var line1 = x;
-    if (stacked) { x = 0; baseY = -14; } else { x += 3.3; }
-    var x0 = x;
-    put(F(), baseY); x += 1.1; put(A(), baseY); x += 1.1; put(Rg(), baseY); x += 1.1; put(M(), baseY);
-    var w2 = x - x0;
-    if (stacked) {
-      var off = (line1 - w2) / 2;
-      out.forEach(function (p) {
-        if (p.outer[0][1] < -1) { p.outer = moved(p.outer, off, 0); p.holes = p.holes.map(function (h) { return moved(h, off, 0); }); }
-      });
-      return { parts: out, w: Math.max(line1, w2), h: 24.25, minY: -14.25, maxY: 10.25 };
+    if (!stacked) {
+      x += 3.3; word(WORDS.harvest, 1.1, 1, 0, 0);
+      x += 3.3; word(WORDS.farm, 1.1, 1, 0, 0);
+      return { parts: out, w: x, h: 10.5, minY: -0.25, maxY: 10.25 };
     }
-    return { parts: out, w: x, h: 10.5, minY: -0.25, maxY: 10.25 };
+    /* empilé : deux lignes à demi-taille, un peu plus espacées pour rester lisibles en petit */
+    var k = 0.5, gap = 1.6, wH = wordW(WORDS.harvest, gap) * k, wF = wordW(WORDS.farm, gap) * k, W = Math.max(line1, wH);
+    var shift = (W - line1) / 2;
+    if (shift > 0) out = out.map(function (p) { return sc(p, 1, shift, 0); });
+    x = 0; word(WORDS.harvest, gap, k, (W - wH) / 2, -2.4 - 10 * k);
+    x = 0; word(WORDS.farm, gap, k, (W - wF) / 2, -2.4 - 10 * k - 1.7 - 10 * k);
+    var minY = -2.4 - 10 * k - 1.7 - 10 * k;
+    return { parts: out, w: W, h: 10.25 - minY, minY: minY, maxY: 10.25 };
   }
   function icon() { return { parts: iconParts(0, 0), w: 2 * ICON.Ro, h: 2 * ICON.Ro, minY: -ICON.Ro, maxY: ICON.Ro }; }
   function bbox(g) {
@@ -290,7 +324,7 @@ button { font: inherit; color: inherit; }
 
   root.BosBrand = {
     S: S, R: R, r: r, ICON: ICON, arc: arc, leaf: leaf,
-    letters: { B: B, S: Sg, F: F, A: A, R: Rg, M: M },
+    letters: { B: B, S: Sg, F: F, A: A, R: Rg, M: M, H: H, E: E, T: T, V: V },
     iconParts: iconParts, wordmark: wordmark, icon: icon, pathOf: pathOf, bbox: bbox
   };
 })(window);
@@ -1056,7 +1090,7 @@ button { font: inherit; color: inherit; }
 
 </script>
 <script>
-/* Bo's Farm : maquette détaillée (3 ha 200 m², 4 serres, eau de pluie, sous-sol, chiens,
+/* Bo's Harvest Farm : maquette détaillée (3 ha 200 m², 4 serres, eau de pluie, sous-sol, chiens,
    espace élevage, coin repos et poulailler prévu plus tard). */
 (function (root) {
   'use strict';
@@ -2031,13 +2065,18 @@ button { font: inherit; color: inherit; }
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
   }
   /* toutes les pages du dossier dans un seul fichier .zip (lisible hors ligne, liens entre pages conservés) */
-  function downloadAll(list, zipName, labels, folder) {
+  function downloadAll(list, zipName, labels, folder, extra) {
     if (!window.TextEncoder) { toast(labels.fail); return; }
+    var pre = folder ? folder + '/' : '', enc = new TextEncoder();
     Promise.all(list.map(function (f) {
       return fetch(f, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(f); return r.arrayBuffer(); })
-        .then(function (b) { return { name: (folder ? folder + '/' : '') + f, data: new Uint8Array(b) }; });
-    })).then(function (files) { saveBlob(makeZip(files), zipName); })
-      .catch(function () { toast(labels.fail); });
+        .then(function (b) { return { name: pre + f, data: new Uint8Array(b) }; }, function () { return null; });
+    })).then(function (files) {
+      files = files.filter(Boolean);
+      if (!files.length) throw new Error('vide');
+      (extra || []).forEach(function (x) { files.push({ name: pre + x.name, data: enc.encode(x.text) }); });
+      saveBlob(makeZip(files), zipName);
+    }).catch(function () { toast(labels.fail); });
   }
 
   /* ---------- diaporama des sections d'une page (page du logo) ---------- */
@@ -2207,7 +2246,7 @@ const TEXTES = {
     coupe: 'Coupe de la maison', ronde: 'Ronde des chiens', vie: 'Animaux en mouvement',
     tour: 'Visite guidée', prev: '‹ Précédent', next: 'Suivant ›', back: 'Vue d\'ensemble',
     pz: { full: 'Plein écran', exit: 'Quitter', panel: 'Réglages', reset: 'Recentrer', hide: 'Masquer', show: 'Afficher', copied: 'Lien copié', copyHint: 'Copie ce lien :', close: 'Fermer', link: 'Lien', fail: 'Téléchargement impossible ici' },
-    intro: { k: 'Bo\'s Farm d\'un coup d\'œil', t: 'Bienvenue sur le terrain', b: 'Chaque numéro montre une partie du projet. Lance la visite guidée, passe en mode Nuit pour voir l\'enseigne et les lampadaires allumés, ou touche « Présenter » pour passer en plein écran.' },
+    intro: { k: 'Bo\'s Harvest Farm d\'un coup d\'œil', t: 'Bienvenue sur le terrain', b: 'Chaque numéro montre une partie du projet. Lance la visite guidée, passe en mode Nuit pour voir l\'enseigne et les lampadaires allumés, ou touche « Présenter » pour passer en plein écran.' },
     pins: {
       serre1: { k: 'Serre 1 · 500 m²', t: 'Piment', b: 'Serre tunnel de 500 m² (ici 10 × 50 m) : quatre rangées de piments, avec une ligne d\'arrosage au pied de chaque rangée.' },
       serre2: { k: 'Serre 2 · 500 m²', t: 'Tomate', b: 'Quatre rangées de tomates tuteurées : un tuteur par plant et un fil tendu au-dessus. Les fruits passent du vert au rouge. Le point de vue « Dans la serre à tomates » te fait marcher entre les rangées.' },
@@ -2228,7 +2267,7 @@ const TEXTES = {
       tortues: { k: 'Zone de vie', t: 'Tortues', b: 'Un petit enclos à murets bas, avec un abri et un point d\'eau, pour deux tortues sillonnées, l\'espèce du Sahel.' },
       eau: { k: 'Eau', t: 'Citerne', b: 'Réserve d\'eau surélevée. Elle reçoit l\'eau du bassin de pluie et alimente la conduite d\'irrigation (pointillés bleus) vers les serres.' },
       pluie: { k: 'Eau', t: 'Eau de pluie', b: 'Les rigoles au pied des serres et les gouttières du local récupèrent la pluie. Elle remplit le bassin et la cuve verte ; une pompe la remonte vers la citerne.' },
-      portail: { k: 'Entrée', t: 'Portail et enseigne', b: 'Une seule entrée fermée à clé, sous l\'enseigne Bo\'s Farm, éclairée le soir. Clôture grillagée doublée d\'une haie vive épineuse.' },
+      portail: { k: 'Entrée', t: 'Portail et enseigne', b: 'Une seule entrée fermée à clé, sous l\'enseigne Bo\'s Harvest Farm, éclairée le soir. Clôture grillagée doublée d\'une haie vive épineuse.' },
       chiens: { k: 'Sécurité', t: 'Deux bergers allemands', b: 'Le jour, ils restent près de la niche et du portail. La nuit, ils font la ronde le long de la clôture : active « Ronde des chiens » pour les voir patrouiller.' },
       lumiere: { k: 'Énergie', t: 'Éclairage solaire', b: 'Des lampadaires solaires le long de l\'allée centrale. Passe en mode Nuit pour les voir allumés.' },
       marches: { k: 'Débouchés', t: 'Vers les marchés', b: 'Le pick-up charge les caisses pour les marchés de Saint-Louis, Louga et Dakar.' }
@@ -2251,7 +2290,7 @@ const TEXTES = {
     coupe: 'House cutaway', ronde: 'Dogs on patrol', vie: 'Animals moving',
     tour: 'Guided tour', prev: '‹ Previous', next: 'Next ›', back: 'Overview',
     pz: { full: 'Full screen', exit: 'Exit', panel: 'Settings', reset: 'Recenter', hide: 'Hide', show: 'Show', copied: 'Link copied', copyHint: 'Copy this link:', close: 'Close', link: 'Link', fail: 'Download not available here' },
-    intro: { k: 'Bo\'s Farm at a glance', t: 'Welcome to the site', b: 'Each number marks one part of the project. Start the guided tour, switch to Night to see the sign and street lights on, or tap "Present" to go full screen.' },
+    intro: { k: 'Bo\'s Harvest Farm at a glance', t: 'Welcome to the site', b: 'Each number marks one part of the project. Start the guided tour, switch to Night to see the sign and street lights on, or tap "Present" to go full screen.' },
     pins: {
       serre1: { k: 'Greenhouse 1 · 500 m²', t: 'Chili pepper', b: 'A 500 m² tunnel greenhouse (here 10 × 50 m): four rows of chili peppers, with a watering line along each row.' },
       serre2: { k: 'Greenhouse 2 · 500 m²', t: 'Tomato', b: 'Four rows of staked tomatoes: one stake per plant and a wire above. Fruits turn from green to red. The "Inside the tomato greenhouse" view walks you between the rows.' },
@@ -2272,7 +2311,7 @@ const TEXTES = {
       tortues: { k: 'Living area', t: 'Tortoises', b: 'A small pen with low walls, a shelter and a water dish for two African spurred tortoises, the Sahel species.' },
       eau: { k: 'Water', t: 'Water tank', b: 'A raised water reserve. It receives water from the rain basin and feeds the irrigation pipe (blue dashes) to the greenhouses.' },
       pluie: { k: 'Water', t: 'Rainwater', b: 'Channels along the greenhouses and gutters on the house collect the rain. It fills the basin and the green tank; a pump sends it up to the water tank.' },
-      portail: { k: 'Entrance', t: 'Gate and sign', b: 'A single locked entrance under the Bo\'s Farm sign, lit at night. Wire fence backed by a thorny hedge.' },
+      portail: { k: 'Entrance', t: 'Gate and sign', b: 'A single locked entrance under the Bo\'s Harvest Farm sign, lit at night. Wire fence backed by a thorny hedge.' },
       chiens: { k: 'Security', t: 'Two German Shepherds', b: 'By day they stay near the kennel and the gate. At night they patrol the fence line: turn on "Dogs on patrol" to watch them.' },
       lumiere: { k: 'Energy', t: 'Solar lighting', b: 'Solar street lights along the central path. Switch to Night to see them on.' },
       marches: { k: 'Markets', t: 'Off to market', b: 'The pickup carries the crates to the markets of Saint-Louis, Louga and Dakar.' }
@@ -2387,14 +2426,14 @@ const TEXTES = {
   function render() {
     var t = T();
     document.documentElement.lang = lang;
-    document.title = 'Bo\'s Farm · ' + (lang === 'fr' ? 'maquette 3D' : '3D model');
+    document.title = 'Bo\'s Harvest Farm · ' + (lang === 'fr' ? 'maquette 3D' : '3D model');
     $('#t-eyebrow').textContent = t.eyebrow; $('#t-lede').textContent = t.lede;
     $('#t-facts').innerHTML = t.facts.map(function (f) { return '<li>' + f + '</li>'; }).join('');
     $('#t-foot').textContent = t.foot; $('#t-home').textContent = t.home;
     $('#b-spin').textContent = t.spin; $('#b-explore').textContent = t.explore;
     $('#b-present').textContent = t.present; $('#b-share').textContent = t.share; $('#b-dl').textContent = t.dl;
     $('#t-hint').textContent = $('#b-explore').getAttribute('aria-pressed') === 'true' ? t.hintExplore : t.hint;
-    $('#v3d').setAttribute('aria-label', 'Bo\'s Farm : ' + t.hint);
+    $('#v3d').setAttribute('aria-label', 'Bo\'s Harvest Farm : ' + t.hint);
     $('#l-views').textContent = t.lViews; $('#l-tod').textContent = t.lTod; $('#l-show').textContent = t.lShow;
     chips($('#views'), Object.keys(t.views).map(function (k) { return [k, t.views[k]]; }), function (k) {
       v.select(null);
@@ -2433,7 +2472,7 @@ const TEXTES = {
   var present = null;
   present = Present.attach({
     vp: $('.vp'), viewer: v,
-    title: function () { return 'Bo\'s Farm'; },
+    title: function () { return 'Bo\'s Harvest Farm'; },
     labels: function () { return T().pz; },
     panels: [$('.ctrls')], caption: $('#card'), strip: $('#list'),
     step: step
