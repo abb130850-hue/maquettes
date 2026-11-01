@@ -291,7 +291,44 @@ body.pl-lock { overflow: hidden; }
   B.prototype.gline = function (a, b, col, o) {
     return this.add(P([[a[0], 0.03, a[1]], [b[0], 0.03, b[1]]], col, Object.assign({ layer: 0, line: true, shadow: false, zi: this.zi++ }, this.opt(o))));
   };
-  B.prototype.line = function (a, b, col, o) { return this.add(P([a, b], col, Object.assign({ line: true, shadow: false }, this.opt(o)))); };
+  /* les longues lignes sont découpées en tronçons de 2,5 m au plus : chaque tronçon est trié à sa propre
+     profondeur, ce qui évite qu'une barre entière passe devant ou derrière un objet d'un coup */
+  B.prototype.line = function (a, b, col, o) {
+    var oo = Object.assign({ line: true, shadow: false }, this.opt(o)), L = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+    if (L <= 3 || oo.nosplit || oo.dash) return this.add(P([a, b], col, oo));
+    var n = Math.ceil(L / 2.5), last = null;
+    function at(t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
+    for (var i = 0; i < n; i++) last = this.add(P([at(i / n), at((i + 1) / n)], col, oo));
+    return last;
+  };
+  /* remplace le dessus d'une boîte (grande face horizontale) par nx × nz carreaux de mêmes réglages */
+  B.prototype.splitTop = function (faces, nx, nz) {
+    var self = this, res = [];
+    faces.forEach(function (f) {
+      if (f.n[1] < 0.9) { res.push(f); return; }
+      var xs = f.pts.map(function (q) { return q[0]; }), zs = f.pts.map(function (q) { return q[2]; }), y = f.pts[0][1];
+      var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), z0 = Math.min.apply(null, zs), z1 = Math.max.apply(null, zs);
+      var ix = self.list.indexOf(f); if (ix >= 0) self.list.splice(ix, 1);
+      var o = {}; for (var k in f) if (k !== 'pts' && k !== 'c' && k !== 'n' && k !== 'rgb' && k.charAt(0) !== '_') o[k] = f[k];
+      o.edge = 0; o.seam = true;
+      var dx = (x1 - x0) / nx, dz = (z1 - z0) / nz;
+      for (var i = 0; i < nx; i++) for (var j = 0; j < nz; j++) {
+        var xa = x0 + i * dx, za = z0 + j * dz, p = P([[xa, y, za], [xa + dx, y, za], [xa + dx, y, za + dz], [xa, y, za + dz]], f.rgb, o);
+        if (p.n[1] < 0) { p.pts.reverse(); p.n = [-p.n[0], -p.n[1], -p.n[2]]; }
+        res.push(self.add(p));
+      }
+    });
+    return res;
+  };
+  /* surface horizontale découpée en dalles (face vers le haut, ou vers le bas si down) */
+  B.prototype.tiles = function (x0, z0, x1, z1, y, nx, nz, col, o, down) {
+    var res = [], oo = Object.assign({ seam: true }, this.opt(o)), dx = (x1 - x0) / nx, dz = (z1 - z0) / nz;
+    for (var i = 0; i < nx; i++) for (var j = 0; j < nz; j++) {
+      var xa = x0 + i * dx, xb = xa + dx, za = z0 + j * dz, zb = za + dz;
+      res.push(this.add(out(P([[xa, y, za], [xb, y, za], [xb, y, zb], [xa, y, zb]], col, oo), [(xa + xb) / 2, y + (down ? 1 : -1), (za + zb) / 2])));
+    }
+    return res;
+  };
   B.prototype.dotAt = function (q, rad, col, o) { return this.add(P([q], col, Object.assign({ dot: rad, shadow: false }, this.opt(o)))); };
   B.prototype.quad = function (pts, col, o) { return this.add(P(pts, col, this.opt(o))); };
   B.prototype.box = function (x0, y0, z0, x1, y1, z1, col, o, top, bottom) {
@@ -561,7 +598,7 @@ body.pl-lock { overflow: hidden; }
     var ins = { l: 0, r: 0, t: 0, b: 0 }, lastTap = null;
     function chan(n) { n = n || 'main'; return chans[n] || (chans[n] = { v: 0, to: 0 }); }
     var drawn = [], pinPos = [], dirty = true, raf = 0, last = 0, visible = true, explore = false, clock = 0;
-    var frameN = 0, camWorld = [0, 0, 0], allP = null, more = false, hq = 1, hqTimer = 0, HQK = 1.5;
+    var drawnU = [], frameN = 0, camWorld = [0, 0, 0], allP = null, more = false, hq = 1, hqTimer = 0, HQK = 1.5;
     var colors = {}, handlers = {};
     var reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
     var shadowCv = document.createElement('canvas'), sctx = shadowCv.getContext('2d');
@@ -760,7 +797,7 @@ body.pl-lock { overflow: hidden; }
         ctx.stroke();
       }
       if (ghost) { ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 0.7 * DPR; ctx.stroke(); }
-      if (hl && p.layer === 1 && !p.two && sel === p.obj && !ghost) { ctx.strokeStyle = colors.hl; ctx.lineWidth = 1.1 * DPR; ctx.stroke(); }
+      if (hl && sc.hlStroke && p.layer === 1 && !p.two && !p.seam && sel === p.obj && !ghost) { ctx.strokeStyle = colors.hl; ctx.lineWidth = 1.1 * DPR; ctx.stroke(); }
     }
 
     function drawShadows(Bs, T, polys) {
@@ -944,17 +981,30 @@ body.pl-lock { overflow: hidden; }
       var idx = 0;
       while (idx < list.length && list[idx].p.layer === 0) { paint(list[idx], T); idx++; }
       if (mode.coupe && sc.pit) {
-        var pit = projPoly(Bs, sc.pit, null, false);
-        if (pit) {
-          ctx.save();
-          ctx.beginPath(); pit.forEach(function (r, k2) { if (k2 === 0) ctx.moveTo(r[0], r[1]); else ctx.lineTo(r[0], r[1]); }); ctx.closePath();
-          ctx.clip();
+        /* fenêtre sur le sous-sol : l'ouverture du plancher et, si on regarde de ce côté, les faces
+           de terrain coupées (avant, côté) ; chaque face n'est ouverte que lorsqu'elle est tournée vers nous */
+        var regs = [];
+        if (sc.pitFaces) sc.pitFaces.forEach(function (f) {
+          if (dot(f.n, sub(camW, f.c)) <= 0) return;
+          var pp = projPoly(Bs, f.pts, null, false); if (pp) regs.push(pp);
+        });
+        else { var pit0 = projPoly(Bs, sc.pit, null, false); if (pit0) regs.push(pit0); }
+        if (regs.length) {
+          var pathRegs = function () {
+            ctx.beginPath();
+            regs.forEach(function (rg) {
+              var ar = 0; for (var q = 0; q < rg.length; q++) { var A2 = rg[q], B2 = rg[(q + 1) % rg.length]; ar += A2[0] * B2[1] - B2[0] * A2[1]; }
+              var pts2 = ar < 0 ? rg.slice().reverse() : rg;
+              pts2.forEach(function (r, k2) { if (k2 === 0) ctx.moveTo(r[0], r[1]); else ctx.lineTo(r[0], r[1]); }); ctx.closePath();
+            });
+          };
+          ctx.save(); pathRegs(); ctx.clip('nonzero');
           ctx.fillStyle = rgba(hex(sc.pitColor || '#3B342C'), 1, 1, T && T.tint); ctx.fillRect(0, 0, W, H);
           under.sort(function (a, b2) { return b2.k - a.k; });
           under.forEach(function (u) { paint(u, T); });
           ctx.restore();
-          ctx.strokeStyle = 'rgba(30,25,20,0.8)'; ctx.lineWidth = 2 * DPR;
-          ctx.beginPath(); pit.forEach(function (r, k2) { if (k2 === 0) ctx.moveTo(r[0], r[1]); else ctx.lineTo(r[0], r[1]); }); ctx.closePath(); ctx.stroke();
+          ctx.strokeStyle = 'rgba(30,25,20,0.8)'; ctx.lineWidth = 2 * DPR; ctx.lineJoin = 'round';
+          regs.forEach(function (rg) { ctx.beginPath(); rg.forEach(function (r, k2) { if (k2 === 0) ctx.moveTo(r[0], r[1]); else ctx.lineTo(r[0], r[1]); }); ctx.closePath(); ctx.stroke(); });
         }
       }
       if (sc.shadow) drawShadows(Bs, T, pl);
@@ -973,7 +1023,7 @@ body.pl-lock { overflow: hidden; }
         });
         ctx.restore();
       }
-      drawn = list;
+      drawn = list; drawnU = mode.coupe ? under : [];
       drawPins(Bs, T);
       drawOverlays(Bs, T);
     }
@@ -1207,7 +1257,7 @@ body.pl-lock { overflow: hidden; }
     this.refresh = function () { readColors(); dirty = true; kick(); };
     this.camera = function () { return { yaw: cam.yaw, pitch: cam.pitch, dist: cam.dist, tx: cam.tx, ty: cam.ty, tz: cam.tz }; };
     this.pinScreen = function () { return pinPos.map(function (q) { return { id: q.id, x: q.x / DPR, y: q.y / DPR }; }); };
-    this.drawnBy = function () { var c = {}; drawn.forEach(function (it) { var k = (it.p.obj || '-') + (it.p.line ? ':l' : it.p.dot ? ':d' : ''); c[k] = (c[k] || 0) + 1; }); return c; };
+    this.drawnBy = function () { var c = {}; drawn.concat(drawnU).forEach(function (it) { var k = (it.p.obj || '-') + (it.p.line ? ':l' : it.p.dot ? ':d' : ''); c[k] = (c[k] || 0) + 1; }); return c; };
     this.stats = function () { return { polys: polys.length, all: allP ? allP.length : polys.length, drawn: drawn.length, dpr: DPR, chunks: sc && sc.chunks ? sc.chunks.filter(function (c) { return c.on; }).length : 0 }; };
     canvas.style.touchAction = 'pan-y';
     canvas.style.cursor = 'grab';
@@ -1358,7 +1408,10 @@ body.pl-lock { overflow: hidden; }
   L.DESKS = DESKS;
   /* plateau simplifié (toujours présent en coupe) */
   L.floorBase = function (b, y, y1, col, o) {
-    var top = b.box(-11.95, y - 0.3, -7.45, 11.95, y, 7.45, '#C9C5BC', Object.assign({ edge: 0.5 }, o), col);
+    /* dalle : côtés pleins, dessus en 10 × 6 carreaux pour que chaque meuble se trie avec le carreau qui le porte */
+    var sl = b.box(-11.95, y - 0.3, -7.45, 11.95, y, 7.45, '#C9C5BC', Object.assign({ edge: 0.5 }, o), col);
+    sl = sl.filter(function (q) { if (q.n[1] > 0.9) { b.list.splice(b.list.indexOf(q), 1); return false; } return true; });
+    var top = sl.concat(b.tiles(-11.95, -7.45, 11.95, 7.45, y, 10, 6, col, o));
     DESKS.forEach(function (d) { b.box(d[0] - 0.8, y, d[1] - 1.6, d[0] + 0.8, y + 0.75, d[1] + 1.6, '#E8E6E0', Object.assign({ ld: { c: [d[0], y, d[1]], r: 48, inv: true } }, o)); });
     return top;
   };
@@ -1421,14 +1474,16 @@ body.pl-lock { overflow: hidden; }
   L.core = function (b, SL, TOP, o) {
     var x0 = -3, x1 = 3, z0 = -2.3, z1 = 2.3, t = 0.2, gray = '#A9A49B', i;
     var WALL = Object.assign({ edge: 0.4 }, o);
-    b.box(x0, 0, z0, x0 + t, TOP, z1, gray, WALL, '#3E3934');
-    b.box(x1 - t, 0, z0, x1, TOP, z1, gray, WALL, '#3E3934');
-    b.box(x0, 0, z0, x1, TOP, z0 + t, gray, WALL, '#3E3934');
-    b.box(0.62, 0, -2.1, 0.78, TOP, 2.1, gray, WALL, '#3E3934');
-    b.box(-0.98, 0, -2.1, -0.86, TOP, 2.1, '#B6B1A8', o);
-    /* façade du noyau : verre devant les ascenseurs, mur percé devant l'escalier */
+    /* façade du noyau : verre devant les ascenseurs, mur percé devant l'escalier ; les voiles sont
+       construits étage par étage pour se trier correctement avec les bureaux autour */
     var levels = [0].concat(SL.slice(0, -1));
     levels.forEach(function (y, k) {
+      var yn = SL[k];
+      b.box(x0, y, z0, x0 + t, yn, z1, gray, WALL, '#3E3934');
+      b.box(x1 - t, y, z0, x1, yn, z1, gray, WALL, '#3E3934');
+      b.box(x0, y, z0, x1, yn, z0 + t, gray, WALL, '#3E3934');
+      b.box(0.62, y, -2.1, 0.78, yn, 2.1, gray, WALL, '#3E3934');
+      b.box(-0.98, y, -2.1, -0.86, yn, 2.1, '#B6B1A8', o);
       var yt = (k + 1 < SL.length ? SL[k] : TOP) - 0.3;
       b.add(P([[x0 + t, y, z1], [0.62, y, z1], [0.62, yt, z1], [x0 + t, yt, z1]], '#9FC9DA', Object.assign({ two: true, a: 0.14, shadow: false }, o)));
       [-1.9, -0.06].forEach(function (dx) {
@@ -1606,7 +1661,7 @@ body.pl-lock { overflow: hidden; }
     });
     /* toit, édicules techniques */
     var RF = { ver: AP, obj: 'couronne', shadow: false, grp: 'bR' };
-    b.add(out(P([[X0, CR0, Z0], [X1, CR0, Z0], [X1, CR0, Z1], [X0, CR0, Z1]], '#8D9499', RF), [0, CR0 - 1, 0]));
+    b.tiles(X0, Z0, X1, Z1, CR0, 8, 5, '#8D9499', RF);
     b.box(-6, CR0, -4, -1, CR0 + 1.6, 1, '#B7BDC1', Object.assign({ edge: 0.5 }, RF));
     b.box(2, CR0, -5, 7, CR0 + 1.3, -1.5, '#AEB4B8', Object.assign({ edge: 0.5 }, RF));
     b.box(-2.2, CR0, 2, 1.8, CR0 + 2.4, 4.8, '#C3C7C9', Object.assign({ edge: 0.5 }, RF));
@@ -1614,12 +1669,11 @@ body.pl-lock { overflow: hidden; }
     var IN = { ver: AP, exOnly: 'bat', shadow: false };
     for (var sk = 0; sk <= NF; sk++) {
       var sg = sk === NF ? 'bR' : 'bF' + (sk + 1), sy = SL[sk];
-      b.box(X0 + 0.12, sy - 0.3, Z0 + 0.12, X1 - 0.12, sy, Z1 - 0.12, '#C9C5BC', Object.assign({ edge: 0.5, grp: sg, obj: 'bplateau' }, IN), '#DAD6CE');
+      b.splitTop(b.box(X0 + 0.12, sy - 0.3, Z0 + 0.12, X1 - 0.12, sy, Z1 - 0.12, '#C9C5BC', Object.assign({ edge: 0.5, grp: sg, obj: 'bplateau' }, IN), '#DAD6CE'), 8, 5);
       if (sk < NF) {
         /* sol de l'étage aux couleurs SVF ; la nuit, il s'allume comme un plateau de bureaux éclairé */
-        var fl = b.add(out(P([[X0 + 1.2, sy + 0.02, Z0 + 1.2], [X1 - 1.2, sy + 0.02, Z0 + 1.2], [X1 - 1.2, sy + 0.02, Z1 - 1.2], [X0 + 1.2, sy + 0.02, Z1 - 1.2]],
-          lift(g(sk / (NF - 1)), 0.42), Object.assign({ grp: sg, obj: 'bplateau', shadow: false }, IN)), [0, sy - 1, 0]));
-        fl.emit = mix(g(sk / (NF - 1)), [255, 241, 214], 0.45);
+        var flE = mix(g(sk / (NF - 1)), [255, 241, 214], 0.45);
+        b.tiles(X0 + 1.2, Z0 + 1.2, X1 - 1.2, Z1 - 1.2, sy + 0.02, 7, 4, lift(g(sk / (NF - 1)), 0.42), Object.assign({ grp: sg, obj: 'bplateau', shadow: false }, IN)).forEach(function (q) { q.emit = flE; });
       }
     }
     var colsIn = [[-11.4, -6.9], [-3.8, -6.9], [3.8, -6.9], [11.4, -6.9], [-11.4, 6.9], [-3.8, 6.9], [3.8, 6.9], [11.4, 6.9], [-11.4, 0], [11.4, 0]];
@@ -1666,7 +1720,7 @@ body.pl-lock { overflow: hidden; }
 
     /* ---------- AVANT : la structure béton et la grue ---------- */
     var AVo = { ver: AV };
-    SL.forEach(function (s) { b.box(X0 + 0.15, s - 0.3, Z0 + 0.15, X1 - 0.15, s, Z1 - 0.15, '#BDB8AE', Object.assign({ edge: 0.5 }, AVo)); });
+    SL.forEach(function (s) { b.splitTop(b.box(X0 + 0.15, s - 0.3, Z0 + 0.15, X1 - 0.15, s, Z1 - 0.15, '#BDB8AE', Object.assign({ edge: 0.5 }, AVo)), 8, 5); });
     var cols = [[-11.4, -6.9], [-3.8, -6.9], [3.8, -6.9], [11.4, -6.9], [-11.4, 6.9], [-3.8, 6.9], [3.8, 6.9], [11.4, 6.9], [-11.4, 0], [11.4, 0]];
     var bottoms = [0].concat(SL.slice(0, -1));
     bottoms.forEach(function (y0, k) {
@@ -1915,7 +1969,7 @@ body.pl-lock { overflow: hidden; }
       b.dotAt([lx, 5.92, 30.6], 0.18, '#E9E2C8', { emit: '#FFE3A8', glow: 7 });
     });
     [[-50, -50, -31, -35, 12.4, '#DCD6CC'], [29, -48, 47, -33, 15.8, '#D3CDC4'], [-15, -56, 11, -45, 9, '#E2DDD4']].forEach(function (nb) {
-      var fs = b.box(nb[0], 0, nb[1], nb[2], nb[4], nb[3], nb[5], { edge: 0.5 }, '#C9C3B9');
+      var fs = b.splitTop(b.box(nb[0], 0, nb[1], nb[2], nb[4], nb[3], nb[5], { edge: 0.5 }, '#C9C3B9'), 6, 4);
       var fz = fs.filter(function (q) { return q.n[2] > 0.9; })[0];
       var fx = fs.filter(function (q) { return nb[0] > 0 ? q.n[0] < -0.9 : q.n[0] > 0.9; })[0], sx = nb[0] > 0 ? nb[0] - 0.02 : nb[2] + 0.02;
       for (var yw = 1.1; yw + 1.5 < nb[4] - 0.5; yw += 3.4) {

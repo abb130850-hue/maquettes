@@ -458,7 +458,44 @@ body.pl-lock { overflow: hidden; }
   B.prototype.gline = function (a, b, col, o) {
     return this.add(P([[a[0], 0.03, a[1]], [b[0], 0.03, b[1]]], col, Object.assign({ layer: 0, line: true, shadow: false, zi: this.zi++ }, this.opt(o))));
   };
-  B.prototype.line = function (a, b, col, o) { return this.add(P([a, b], col, Object.assign({ line: true, shadow: false }, this.opt(o)))); };
+  /* les longues lignes sont découpées en tronçons de 2,5 m au plus : chaque tronçon est trié à sa propre
+     profondeur, ce qui évite qu'une barre entière passe devant ou derrière un objet d'un coup */
+  B.prototype.line = function (a, b, col, o) {
+    var oo = Object.assign({ line: true, shadow: false }, this.opt(o)), L = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+    if (L <= 3 || oo.nosplit || oo.dash) return this.add(P([a, b], col, oo));
+    var n = Math.ceil(L / 2.5), last = null;
+    function at(t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
+    for (var i = 0; i < n; i++) last = this.add(P([at(i / n), at((i + 1) / n)], col, oo));
+    return last;
+  };
+  /* remplace le dessus d'une boîte (grande face horizontale) par nx × nz carreaux de mêmes réglages */
+  B.prototype.splitTop = function (faces, nx, nz) {
+    var self = this, res = [];
+    faces.forEach(function (f) {
+      if (f.n[1] < 0.9) { res.push(f); return; }
+      var xs = f.pts.map(function (q) { return q[0]; }), zs = f.pts.map(function (q) { return q[2]; }), y = f.pts[0][1];
+      var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), z0 = Math.min.apply(null, zs), z1 = Math.max.apply(null, zs);
+      var ix = self.list.indexOf(f); if (ix >= 0) self.list.splice(ix, 1);
+      var o = {}; for (var k in f) if (k !== 'pts' && k !== 'c' && k !== 'n' && k !== 'rgb' && k.charAt(0) !== '_') o[k] = f[k];
+      o.edge = 0; o.seam = true;
+      var dx = (x1 - x0) / nx, dz = (z1 - z0) / nz;
+      for (var i = 0; i < nx; i++) for (var j = 0; j < nz; j++) {
+        var xa = x0 + i * dx, za = z0 + j * dz, p = P([[xa, y, za], [xa + dx, y, za], [xa + dx, y, za + dz], [xa, y, za + dz]], f.rgb, o);
+        if (p.n[1] < 0) { p.pts.reverse(); p.n = [-p.n[0], -p.n[1], -p.n[2]]; }
+        res.push(self.add(p));
+      }
+    });
+    return res;
+  };
+  /* surface horizontale découpée en dalles (face vers le haut, ou vers le bas si down) */
+  B.prototype.tiles = function (x0, z0, x1, z1, y, nx, nz, col, o, down) {
+    var res = [], oo = Object.assign({ seam: true }, this.opt(o)), dx = (x1 - x0) / nx, dz = (z1 - z0) / nz;
+    for (var i = 0; i < nx; i++) for (var j = 0; j < nz; j++) {
+      var xa = x0 + i * dx, xb = xa + dx, za = z0 + j * dz, zb = za + dz;
+      res.push(this.add(out(P([[xa, y, za], [xb, y, za], [xb, y, zb], [xa, y, zb]], col, oo), [(xa + xb) / 2, y + (down ? 1 : -1), (za + zb) / 2])));
+    }
+    return res;
+  };
   B.prototype.dotAt = function (q, rad, col, o) { return this.add(P([q], col, Object.assign({ dot: rad, shadow: false }, this.opt(o)))); };
   B.prototype.quad = function (pts, col, o) { return this.add(P(pts, col, this.opt(o))); };
   B.prototype.box = function (x0, y0, z0, x1, y1, z1, col, o, top, bottom) {
@@ -728,7 +765,7 @@ body.pl-lock { overflow: hidden; }
     var ins = { l: 0, r: 0, t: 0, b: 0 }, lastTap = null;
     function chan(n) { n = n || 'main'; return chans[n] || (chans[n] = { v: 0, to: 0 }); }
     var drawn = [], pinPos = [], dirty = true, raf = 0, last = 0, visible = true, explore = false, clock = 0;
-    var frameN = 0, camWorld = [0, 0, 0], allP = null, more = false, hq = 1, hqTimer = 0, HQK = 1.5;
+    var drawnU = [], frameN = 0, camWorld = [0, 0, 0], allP = null, more = false, hq = 1, hqTimer = 0, HQK = 1.5;
     var colors = {}, handlers = {};
     var reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
     var shadowCv = document.createElement('canvas'), sctx = shadowCv.getContext('2d');
@@ -927,7 +964,7 @@ body.pl-lock { overflow: hidden; }
         ctx.stroke();
       }
       if (ghost) { ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 0.7 * DPR; ctx.stroke(); }
-      if (hl && p.layer === 1 && !p.two && sel === p.obj && !ghost) { ctx.strokeStyle = colors.hl; ctx.lineWidth = 1.1 * DPR; ctx.stroke(); }
+      if (hl && sc.hlStroke && p.layer === 1 && !p.two && !p.seam && sel === p.obj && !ghost) { ctx.strokeStyle = colors.hl; ctx.lineWidth = 1.1 * DPR; ctx.stroke(); }
     }
 
     function drawShadows(Bs, T, polys) {
@@ -1111,17 +1148,30 @@ body.pl-lock { overflow: hidden; }
       var idx = 0;
       while (idx < list.length && list[idx].p.layer === 0) { paint(list[idx], T); idx++; }
       if (mode.coupe && sc.pit) {
-        var pit = projPoly(Bs, sc.pit, null, false);
-        if (pit) {
-          ctx.save();
-          ctx.beginPath(); pit.forEach(function (r, k2) { if (k2 === 0) ctx.moveTo(r[0], r[1]); else ctx.lineTo(r[0], r[1]); }); ctx.closePath();
-          ctx.clip();
+        /* fenêtre sur le sous-sol : l'ouverture du plancher et, si on regarde de ce côté, les faces
+           de terrain coupées (avant, côté) ; chaque face n'est ouverte que lorsqu'elle est tournée vers nous */
+        var regs = [];
+        if (sc.pitFaces) sc.pitFaces.forEach(function (f) {
+          if (dot(f.n, sub(camW, f.c)) <= 0) return;
+          var pp = projPoly(Bs, f.pts, null, false); if (pp) regs.push(pp);
+        });
+        else { var pit0 = projPoly(Bs, sc.pit, null, false); if (pit0) regs.push(pit0); }
+        if (regs.length) {
+          var pathRegs = function () {
+            ctx.beginPath();
+            regs.forEach(function (rg) {
+              var ar = 0; for (var q = 0; q < rg.length; q++) { var A2 = rg[q], B2 = rg[(q + 1) % rg.length]; ar += A2[0] * B2[1] - B2[0] * A2[1]; }
+              var pts2 = ar < 0 ? rg.slice().reverse() : rg;
+              pts2.forEach(function (r, k2) { if (k2 === 0) ctx.moveTo(r[0], r[1]); else ctx.lineTo(r[0], r[1]); }); ctx.closePath();
+            });
+          };
+          ctx.save(); pathRegs(); ctx.clip('nonzero');
           ctx.fillStyle = rgba(hex(sc.pitColor || '#3B342C'), 1, 1, T && T.tint); ctx.fillRect(0, 0, W, H);
           under.sort(function (a, b2) { return b2.k - a.k; });
           under.forEach(function (u) { paint(u, T); });
           ctx.restore();
-          ctx.strokeStyle = 'rgba(30,25,20,0.8)'; ctx.lineWidth = 2 * DPR;
-          ctx.beginPath(); pit.forEach(function (r, k2) { if (k2 === 0) ctx.moveTo(r[0], r[1]); else ctx.lineTo(r[0], r[1]); }); ctx.closePath(); ctx.stroke();
+          ctx.strokeStyle = 'rgba(30,25,20,0.8)'; ctx.lineWidth = 2 * DPR; ctx.lineJoin = 'round';
+          regs.forEach(function (rg) { ctx.beginPath(); rg.forEach(function (r, k2) { if (k2 === 0) ctx.moveTo(r[0], r[1]); else ctx.lineTo(r[0], r[1]); }); ctx.closePath(); ctx.stroke(); });
         }
       }
       if (sc.shadow) drawShadows(Bs, T, pl);
@@ -1140,7 +1190,7 @@ body.pl-lock { overflow: hidden; }
         });
         ctx.restore();
       }
-      drawn = list;
+      drawn = list; drawnU = mode.coupe ? under : [];
       drawPins(Bs, T);
       drawOverlays(Bs, T);
     }
@@ -1374,7 +1424,7 @@ body.pl-lock { overflow: hidden; }
     this.refresh = function () { readColors(); dirty = true; kick(); };
     this.camera = function () { return { yaw: cam.yaw, pitch: cam.pitch, dist: cam.dist, tx: cam.tx, ty: cam.ty, tz: cam.tz }; };
     this.pinScreen = function () { return pinPos.map(function (q) { return { id: q.id, x: q.x / DPR, y: q.y / DPR }; }); };
-    this.drawnBy = function () { var c = {}; drawn.forEach(function (it) { var k = (it.p.obj || '-') + (it.p.line ? ':l' : it.p.dot ? ':d' : ''); c[k] = (c[k] || 0) + 1; }); return c; };
+    this.drawnBy = function () { var c = {}; drawn.concat(drawnU).forEach(function (it) { var k = (it.p.obj || '-') + (it.p.line ? ':l' : it.p.dot ? ':d' : ''); c[k] = (c[k] || 0) + 1; }); return c; };
     this.stats = function () { return { polys: polys.length, all: allP ? allP.length : polys.length, drawn: drawn.length, dpr: DPR, chunks: sc && sc.chunks ? sc.chunks.filter(function (c) { return c.on; }).length : 0 }; };
     canvas.style.touchAction = 'pan-y';
     canvas.style.cursor = 'grab';
@@ -1759,7 +1809,7 @@ body.pl-lock { overflow: hidden; }
       { a: 'x', c: -65.7, at: 39, w: 1.0, hinge: -1, into: -1, ext: true, fr: 'Entrée', en: 'Entrance' },
       { a: 'x', c: -64.5, at: 34.26, w: 0.85, hinge: 1, into: -1 },
       { a: 'x', c: -62.15, at: 34.26, w: 0.75, hinge: -1, into: -1 },
-      { a: 'x', c: -59.2, at: 34.26, w: 0.85, hinge: 1, into: -1 },
+      { a: 'x', c: -60.3, at: 34.26, w: 0.8, hinge: -1, into: -1 },
       { a: 'z', c: 36.15, at: -61.54, w: 1.0, open: true },
       { a: 'z', c: 37.85, at: -55, w: 0.9, hinge: 1, into: -1, ext: true, fr: 'Service', en: 'Service' }
     ],
@@ -1768,9 +1818,11 @@ body.pl-lock { overflow: hidden; }
       { a: 'x', c: -66.1, at: 30, w: 1.4 }, { a: 'x', c: -62.15, at: 30, w: 0.6, high: true }, { a: 'x', c: -58.1, at: 30, w: 1.4 },
       { a: 'z', c: 32.2, at: -69, w: 1.2 }, { a: 'z', c: 36.6, at: -69, w: 1.4 }, { a: 'z', c: 32.2, at: -55, w: 1.2 }
     ],
-    /* escalier droit : 11 hauteurs de marche, du hall (x −61,35) vers le sous-sol (x −58,55) */
-    stair: { x0: -61.35, x1: -58.55, z0: 34.45, z1: 35.45, n: 11 },
-    pit: [-61.48, 34.32, -55.25, 38.75]
+    /* escalier droit : 11 hauteurs de marche ; il part du palier du hall (devant la porte de la cuisine,
+       dans le passage du séjour) et descend vers l'est jusqu'au sous-sol */
+    stair: { x0: -59.85, x1: -57.05, z0: 34.42, z1: 35.42, n: 11 },
+    /* partie du plancher du hall retirée en vue en coupe (le palier reste en place) */
+    pit: [-59.85, 34.32, -55.25, 38.75]
   };
 
   /* mur droit le long d'un axe, avec ouvertures [s0, s1] */
@@ -1813,7 +1865,7 @@ body.pl-lock { overflow: hidden; }
     var plaster = '#EFE6D6', plinth = '#C9B99B';
 
     /* ======== extérieur (masqué en coupe) ======== */
-    var shell = b.box(x0, 0, z0, x1, top, z1, plaster, Object.assign({ edge: 0.6 }, EXT), '#DCD5C8');
+    var shell = b.splitTop(b.box(x0, 0, z0, x1, top, z1, plaster, Object.assign({ edge: 0.6 }, EXT), '#DCD5C8'), 7, 4);
     function face(nx, nz) { return shell.filter(function (p) { return p.n[0] * nx + p.n[2] * nz > 0.9; })[0]; }
     var fS = face(0, 1), fN = face(0, -1), fE = face(1, 0), fW = face(-1, 0);
     function onFace(a, at) { return a === 'x' ? (at > 35 ? fS : fN) : (at > -60 ? fE : fW); }
@@ -1891,6 +1943,8 @@ body.pl-lock { overflow: hidden; }
     var R = H.rooms;
     /* planchers (couche sol, sous les meubles) ; le hall est découpé pour voir le sous-sol */
     R.forEach(function (rm) { if (rm.id !== 'hall') b.ground(rect(rm.r[0] - 0.06, rm.r[1] - 0.06, rm.r[2] + 0.06, rm.r[3] + 0.06), rm.floor, CUT, FL); });
+    b.ground(rect(R[4].r[0] - 0.06, R[4].r[1] - 0.06, H.pit[0], R[4].r[3] + 0.06), R[4].floor, CUT, FL);
+    tiles([R[4].r[0], R[4].r[1], H.pit[0], R[4].r[3]], 0.6, '#D6C8AE');
     /* carrelage du séjour et de la salle d'eau */
     function tiles(r, step, col) {
       for (var gx = r[0] + step; gx < r[2] - 0.05; gx += step) b.ground([[gx - 0.008, r[1]], [gx + 0.008, r[1]], [gx + 0.008, r[3]], [gx - 0.008, r[3]]], col, CUT, FL + 0.001);
@@ -1910,12 +1964,10 @@ body.pl-lock { overflow: hidden; }
     });
     /* murs coupés à 1 m : la tranche est foncée comme sur un plan ; autour du hall découpé, coupés au ras du sol */
     var WC = Object.assign({ edge: 0.5 }, CUT), all = H.doors;
-    run(b, 'x', z1, x0, -61.48, z1 - t, z1, 0, ch, holesOn('x', z1, all), wall, WC, poche);
-    run(b, 'x', z1, -61.48, x1, z1 - t, z1, 0, FL, [], wall, WC, poche);
+    run(b, 'x', z1, x0, H.pit[0], z1 - t, z1, 0, ch, holesOn('x', z1, all), wall, WC, poche);
     run(b, 'x', z0, x0, x1, z0, z0 + t, 0, ch, [], wall, WC, poche);
     run(b, 'z', x0, z0, z1, x0, x0 + t, 0, ch, [], wall, WC, poche);
     run(b, 'z', x1, z0, 34.32, x1 - t, x1, 0, ch, [], wall, WC, poche);
-    run(b, 'z', x1, 34.32, z1, x1 - t, x1, 0, FL, [], wall, WC, poche);
     H.parts.forEach(function (pt) {
       var hw = H.ti / 2;
       run(b, pt[0], pt[1], pt[2], pt[3], pt[1] - hw, pt[1] + hw, FL, ch, holesOn(pt[0], pt[1], all), wall, WC, poche);
@@ -1989,12 +2041,19 @@ body.pl-lock { overflow: hidden; }
 
     /* ======== sous-sol : visible par la découpe du hall ======== */
     var bx0 = x0 + t, bx1 = x1 - t, bz0 = z0 + t, bz1 = z1 - t, U = { under: true, obj: 'soussol' };
-    b.add(P([[bx0, BY, bz0], [bx1, BY, bz0], [bx1, BY, bz1], [bx0, BY, bz1]], '#BFB7AA', Object.assign({ two: true }, U)));
-    for (var gx = bx0 + 1; gx < bx1 - 0.2; gx += 1) b.line([gx, BY + 0.01, bz0], [gx, BY + 0.01, bz1], '#ABA194', Object.assign({ lw: 0.6 }, U));
-    for (var gz = bz0 + 1; gz < bz1 - 0.2; gz += 1) b.line([bx0, BY + 0.01, gz], [bx1, BY + 0.01, gz], '#ABA194', Object.assign({ lw: 0.6 }, U));
+    /* le sol (en dalles) et les murs passent toujours derrière le contenu : rien ne disparaît en tournant */
+    b.tiles(bx0, bz0, bx1, bz1, BY, 9, 6, '#BFB7AA', Object.assign({ bias: 1000 }, U));
+    for (var gx = bx0 + 1; gx < bx1 - 0.2; gx += 1) b.line([gx, BY + 0.01, bz0], [gx, BY + 0.01, bz1], '#ABA194', Object.assign({ lw: 0.6, bias: 900 }, U));
+    for (var gz = bz0 + 1; gz < bz1 - 0.2; gz += 1) b.line([bx0, BY + 0.01, gz], [bx1, BY + 0.01, gz], '#ABA194', Object.assign({ lw: 0.6, bias: 900 }, U));
+    var bc = [(bx0 + bx1) / 2, BY, (bz0 + bz1) / 2];
     [[[bx0, bz0], [bx1, bz0]], [[bx1, bz0], [bx1, bz1]], [[bx1, bz1], [bx0, bz1]], [[bx0, bz1], [bx0, bz0]]].forEach(function (wl) {
-      b.add(P([[wl[0][0], BY, wl[0][1]], [wl[1][0], BY, wl[1][1]], [wl[1][0], FL, wl[1][1]], [wl[0][0], FL, wl[0][1]]], '#DAD3C6', Object.assign({ two: true }, U)));
+      var wp = P([[wl[0][0], BY, wl[0][1]], [wl[1][0], BY, wl[1][1]], [wl[1][0], FL, wl[1][1]], [wl[0][0], FL, wl[0][1]]], '#DAD3C6', Object.assign({ bias: 500 }, U));
+      if (M.dot(wp.n, M.sub(bc, wp.c)) < 0) { wp.pts.reverse(); wp.n = [-wp.n[0], -wp.n[1], -wp.n[2]]; }
+      b.add(wp);
     });
+    /* tranche du radier là où le terrain est coupé (devant et sur le côté) */
+    b.box(H.pit[0], BY - 0.3, z1 - t, x1, BY, z1, '#6E665C', U, '#8E867A');
+    b.box(x1 - t, BY - 0.3, H.pit[1], x1, BY, z1, '#6E665C', U, '#8E867A');
     /* poteau et poutre sous le plancher */
     b.box(-61.6, BY, 34.15, -61.4, 0, 34.35, '#CFC8BB', U);
     b.box(bx0, -0.3, 34.15, bx1, 0, 34.35, '#CFC8BB', U);
@@ -2014,33 +2073,33 @@ body.pl-lock { overflow: hidden; }
       }
     });
     /* congélateurs contre le mur est : coffre ouvert (caisses dedans) et armoire */
-    var FZ = { under: true, obj: 'congelateur' }, fx0 = bx1 - 0.92, fx1 = bx1 - 0.05, fz0 = 35.2, fz1 = 37.2;
+    var FZ = { under: true, obj: 'congelateur' }, fx0 = bx1 - 0.88, fx1 = bx1 - 0.05, fz0 = 35.75, fz1 = 37.65;
     b.box(fx0, BY, fz0, fx1, BY + 0.88, fz1, '#F1F3F4', Object.assign({ edge: 0.7 }, FZ), '#CDE8F3');
     [['#D9543A', 0.15], ['#7FA35D', 0.75], ['#E2AA38', 1.35]].forEach(function (c2) {
       b.box(fx0 + 0.16, BY + 0.62, fz0 + c2[1], fx1 - 0.16, BY + 0.98, fz0 + c2[1] + 0.5, c2[0], FZ);
     });
     b.add(P([[fx1, BY + 0.88, fz0], [fx1, BY + 0.88, fz1], [fx1 + 0.03, BY + 1.85, fz1], [fx1 + 0.03, BY + 1.85, fz0]], '#F7F8F9', Object.assign({ two: true, edge: 0.7 }, FZ)));
-    b.box(bx1 - 0.82, BY, 37.5, bx1 - 0.05, BY + 1.95, 38.4, '#F3F5F6', Object.assign({ edge: 0.7 }, FZ), '#E6EAEC');
-    b.box(bx1 - 0.86, BY + 0.9, 37.55, bx1 - 0.82, BY + 1.55, 37.6, '#8E989D', FZ);
-    b.dotAt([bx1 - 0.84, BY + 1.8, 38.0], 0.04, '#2FBF71', Object.assign({ emit: '#3BE38A', glow: 0.4 }, FZ));
-    b.dotAt([fx0 - 0.01, BY + 0.75, fz0 + 1.8], 0.035, '#2FBF71', Object.assign({ emit: '#3BE38A', glow: 0.4 }, FZ));
+    b.box(-56.88, BY, 37.95, -56.12, BY + 1.95, bz1 - 0.04, '#F3F5F6', Object.assign({ edge: 0.7 }, FZ), '#E6EAEC');
+    b.box(-56.82, BY + 0.9, 37.91, -56.77, BY + 1.55, 37.95, '#8E989D', FZ);
+    b.dotAt([-56.45, BY + 1.8, 37.93], 0.04, '#2FBF71', Object.assign({ emit: '#3BE38A', glow: 0.4 }, FZ));
+    b.dotAt([fx0 - 0.01, BY + 0.75, fz0 + 1.6], 0.035, '#2FBF71', Object.assign({ emit: '#3BE38A', glow: 0.4 }, FZ));
     /* étagères ouvertes de caisses contre le mur avant, palettes et table de tri au centre */
     var crates = ['#C8452F', '#E2AA38', '#4E8B3F', '#C8452F', '#B38A5E', '#4E8B3F'];
-    [-61.1, -59.5].forEach(function (sx, u) {
+    [-59.75, -58.3].forEach(function (sx, u) {
       [BY + 0.12, BY + 0.82, BY + 1.52, BY + 2.22].forEach(function (yy, lvl) {
-        b.box(sx, yy, bz1 - 0.65, sx + 1.45, yy + 0.05, bz1 - 0.02, '#8C6E4E', U);
-        if (lvl < 3) for (var c3 = 0; c3 < 2; c3++) b.box(sx + 0.08 + c3 * 0.68, yy + 0.05, bz1 - 0.6, sx + 0.66 + c3 * 0.68, yy + 0.42, bz1 - 0.08, '#C49A63', U, crates[(u * 3 + lvl + c3) % crates.length]);
+        b.box(sx, yy, bz1 - 0.65, sx + 1.4, yy + 0.05, bz1 - 0.02, '#8C6E4E', U);
+        if (lvl < 3) for (var c3 = 0; c3 < 2; c3++) b.box(sx + 0.08 + c3 * 0.66, yy + 0.05, bz1 - 0.6, sx + 0.64 + c3 * 0.66, yy + 0.42, bz1 - 0.08, '#C49A63', U, crates[(u * 3 + lvl + c3) % crates.length]);
       });
-      [sx, sx + 1.4].forEach(function (ux) { b.box(ux, BY, bz1 - 0.65, ux + 0.05, BY + 2.4, bz1 - 0.6, '#7A5E42', U); b.box(ux, BY, bz1 - 0.07, ux + 0.05, BY + 2.4, bz1 - 0.02, '#7A5E42', U); });
+      [sx, sx + 1.35].forEach(function (ux) { b.box(ux, BY, bz1 - 0.65, ux + 0.05, BY + 2.4, bz1 - 0.6, '#7A5E42', U); b.box(ux, BY, bz1 - 0.07, ux + 0.05, BY + 2.4, bz1 - 0.02, '#7A5E42', U); });
     });
-    var pal = [-57.9, 36.0];
+    var pal = [-59.5, 36.3];
     b.box(pal[0], BY, pal[1], pal[0] + 1.2, BY + 0.14, pal[1] + 1.0, '#9C7E5A', U);
     for (var px2 = 0; px2 < 2; px2++) for (var pz2 = 0; pz2 < 2; pz2++) for (var py2 = 0; py2 < 2; py2++) {
       b.box(pal[0] + 0.04 + px2 * 0.58, BY + 0.14 + py2 * 0.38, pal[1] + 0.04 + pz2 * 0.48, pal[0] + 0.58 + px2 * 0.58, BY + 0.5 + py2 * 0.38, pal[1] + 0.48 + pz2 * 0.48, '#C49A63', U, crates[(px2 + pz2 + py2) % 3]);
     }
-    b.box(-60.6, BY, 36.3, -59.0, BY + 0.86, 37.2, '#9C7E5A', U, '#B08D63');
-    [0, 1].forEach(function (k3) { b.box(-60.4 + k3 * 0.75, BY + 0.86, 36.45, -59.85 + k3 * 0.75, BY + 1.18, 36.95, '#C49A63', U, k3 ? '#4E8B3F' : '#C8452F'); });
-    [[-59.8, 36.75], [-57.3, 35.8], [-64.5, 33.5], [-65.5, 36.5]].forEach(function (lp) {
+    b.box(-57.9, BY, 36.0, -56.6, BY + 0.86, 36.9, '#9C7E5A', U, '#B08D63');
+    [0, 1].forEach(function (k3) { b.box(-57.75 + k3 * 0.62, BY + 0.86, 36.15, -57.25 + k3 * 0.62, BY + 1.18, 36.75, '#C49A63', U, k3 ? '#4E8B3F' : '#C8452F'); });
+    [[-58.3, 37.0], [-56.4, 34.95], [-64.5, 33.5], [-65.5, 36.5]].forEach(function (lp) {
       b.dotAt([lp[0], -0.1, lp[1]], 0.07, '#EDE6D2', { under: true, obj: 'soussol', emit: '#FFF2CC', glow: 1.4 });
     });
     /* étagères sous le reste de la maison (visibles en biais) */
@@ -2048,11 +2107,17 @@ body.pl-lock { overflow: hidden; }
 
     return {
       pit: [[pit[0], FL, pit[1]], [pit[2], FL, pit[1]], [pit[2], FL, pit[3]], [pit[0], FL, pit[3]]],
+      /* faces ouvertes de la découpe : plancher du hall, et terrain coupé devant (sud) et sur le côté (est) */
+      pitFaces: [
+        { pts: [[pit[0], FL, pit[1]], [pit[2], FL, pit[1]], [pit[2], FL, pit[3]], [pit[0], FL, pit[3]]], n: [0, 1, 0] },
+        { pts: [[pit[0], BY - 0.3, z1], [x1, BY - 0.3, z1], [x1, FL, z1], [pit[0], FL, z1]], n: [0, 0, 1] },
+        { pts: [[x1, BY - 0.3, pit[1]], [x1, BY - 0.3, z1], [x1, FL, z1], [x1, FL, pit[1]]], n: [1, 0, 0] }
+      ].map(function (f) { f.c = [0, 1, 2].map(function (k) { return f.pts.reduce(function (sum, q) { return sum + q[k]; }, 0) / 4; }); return f; }),
       pins: [
         { id: 'local', at: [-62, 6.4, 34.5], cut: 'hide' },
         { id: 'interieur', at: [-65.5, 2.6, 36.4], cut: 'only' },
-        { id: 'soussol', at: [-60.2, 0.9, 37.8], cut: 'only' },
-        { id: 'escalier', at: [-59.8, 1.5, 34.9], cut: 'only' },
+        { id: 'soussol', at: [-58.2, 0.9, 37.6], cut: 'only' },
+        { id: 'escalier', at: [-58.4, 1.4, 34.9], cut: 'only' },
         { id: 'congelateur', at: [bx1 - 0.5, BY + 2.4, 36.6], cut: 'only' }
       ],
       bx1: bx1
@@ -2585,7 +2650,7 @@ body.pl-lock { overflow: hidden; }
     b.pins.forEach(function (pn) { pn.n = order.indexOf(pn.id) + 1; });
 
     var day = nrm([-0.45, 0.85, 0.32]);
-    var SOUSSOL = { yaw: -0.62, pitch: 0.95, dist: 15, tx: -58.4, ty: -1.6, tz: 36.4 };
+    var SOUSSOL = { yaw: -0.55, pitch: 0.9, dist: 14, tx: -57.6, ty: -1.6, tz: 36.4 };
     var COUPE = { yaw: -0.42, pitch: 0.86, dist: 27, tx: -62, ty: -0.4, tz: 34.6 };
     var scene = {
       polys: b.list, pins: b.pins, chunks: chunks, chunkCache: 120,
@@ -2598,7 +2663,7 @@ body.pl-lock { overflow: hidden; }
           bg: ['#08111F', '#1C2A44'], emit: true, glow: 1, stars: true, pin: '#F2EFE6', pinText: '#14202A', pinRing: '#14202A', ink: '#E8EDF3', chip: '#1C2A44' }
       },
       shadow: true, shadowA: 0.2, groundY: 0, clip: rect(X0, Z0, X1, Z1).map(function (q) { return [q[0], 0, q[1]]; }),
-      pit: HSE.pit, pitColor: '#3B342C', ghostA: 0.07,
+      pit: HSE.pit, pitFaces: HSE.pitFaces, pitColor: '#3B342C', ghostA: 0.07,
       lodDist: 135, overlay: { compass: true, scale: true },
       spin: 0.12, minPitch: 0.04, maxPitch: 1.42, minDist: 2.5, maxDist: 520,
       pan: 'ground', panBounds: [-110, 110, -5, 30, -85, 85],
@@ -2632,7 +2697,7 @@ body.pl-lock { overflow: hidden; }
         local: { yaw: -0.35, pitch: 0.3, dist: 34, tx: -62, ty: 2, tz: 36 },
         interieur: { yaw: -0.28, pitch: 0.92, dist: 18, tx: -64.6, ty: 0.3, tz: 34.6 },
         soussol: SOUSSOL,
-        escalier: { yaw: -0.08, pitch: 0.62, dist: 11, tx: -59.9, ty: -1.4, tz: 35.2 },
+        escalier: { yaw: -0.3, pitch: 0.55, dist: 11, tx: -58.5, ty: -1.2, tz: 35.6 },
         congelateur: { yaw: -0.95, pitch: 0.7, dist: 10, tx: -56.2, ty: -2.0, tz: 36.6 },
         repos: { yaw: 0.46, pitch: 0.1, dist: 17, tx: tX + 2.0, ty: 1.2, tz: tZ - 0.6 },
         cerisier: { yaw: 0.35, pitch: 0.2, dist: 27, tx: tX, ty: 4.2, tz: tZ },
@@ -3616,7 +3681,7 @@ body.pl-lock { overflow: hidden; }
     var lv = '+0,30';
     H.rooms.forEach(function (rm) { s.room(rm.r, lang === 'en' ? rm.en : rm.fr, lv); });
     /* ligne de coupe A-A */
-    var zA = 34.95;
+    var zA = (S.z0 + S.z1) / 2;
     s.line(-69.6, zA, -54.4, zA, 'ax'); s.text(-69.75, zA - 0.75, 'A', 'tb'); s.text(-54.4, zA - 0.75, 'A', 'tb');
     s.line(-69.6, zA, -69.6, zA - 0.55, 'arw'); s.line(-54.4, zA, -54.4, zA - 0.55, 'arw');
     /* cotes : façade nord en haut, façade sud sous la véranda, profondeurs à gauche */
@@ -3636,19 +3701,19 @@ body.pl-lock { overflow: hidden; }
     s.stair(S.x1, S.z0, S.x0, S.z1, 10, true, tr(lang, 'Monte vers la maison', 'Up to the house'));
     /* congélateurs */
     var bx1 = H.x1 - 0.25;
-    s.rect(bx1 - 0.92, 35.2, bx1 - 0.05, 37.2, 'ff'); s.text(bx1 - 0.48, 36.2, tr(lang, 'Congél. coffre', 'Chest freezer'), 'ts', 'middle', -90);
-    s.rect(bx1 - 0.82, 37.5, bx1 - 0.05, 38.4, 'ff'); s.line(bx1 - 0.82, 37.5, bx1 - 0.05, 38.4, 'f'); s.text(bx1 - 1.1, 38.05, tr(lang, 'Armoire', 'Upright'), 'ts', 'end');
+    s.rect(bx1 - 0.88, 35.75, bx1 - 0.05, 37.65, 'ff'); s.text(bx1 - 0.46, 36.7, tr(lang, 'Congél. coffre', 'Chest freezer'), 'ts', 'middle', -90);
+    s.rect(-56.88, 37.95, -56.12, 38.71, 'ff'); s.line(-56.88, 37.95, -56.12, 38.71, 'f'); s.text(-56.5, 37.7, tr(lang, 'Armoire congél.', 'Upright freezer'), 'ts');
     /* rayonnages, palettes, table de tri */
-    [-61.1, -59.5].forEach(function (sx) { s.rect(sx, 38.1, sx + 1.45, 38.73, 'f'); s.line(sx + 0.72, 38.1, sx + 0.72, 38.73, 'f'); });
+    [-59.75, -58.3].forEach(function (sx) { s.rect(sx, 38.1, sx + 1.4, 38.73, 'f'); s.line(sx + 0.7, 38.1, sx + 0.7, 38.73, 'f'); });
     for (var sh = 0; sh < 4; sh++) { var a = -68.55 + sh * 1.6; s.rect(a, 30.3, a + 1.4, 30.9, 'f'); s.line(a + 0.7, 30.3, a + 0.7, 30.9, 'f'); }
-    s.rect(-57.9, 36.0, -56.7, 37.0, 'f'); s.line(-57.9, 36.0, -56.7, 37.0, 'f'); s.line(-56.7, 36.0, -57.9, 37.0, 'f');
-    s.rect(-60.6, 36.3, -59.0, 37.2, 'f');
-    [[-59.8, 36.75], [-57.3, 35.8], [-64.5, 33.5], [-65.5, 36.5]].forEach(function (lp) { s.circle(lp[0], lp[1], 0.12, 'o'); s.line(lp[0] - 0.12, lp[1] - 0.12, lp[0] + 0.12, lp[1] + 0.12, 'f'); s.line(lp[0] - 0.12, lp[1] + 0.12, lp[0] + 0.12, lp[1] - 0.12, 'f'); });
+    s.rect(-59.5, 36.3, -58.3, 37.3, 'f'); s.line(-59.5, 36.3, -58.3, 37.3, 'f'); s.line(-58.3, 36.3, -59.5, 37.3, 'f');
+    s.rect(-57.9, 36.0, -56.6, 36.9, 'f');
+    [[-58.3, 37.0], [-56.4, 34.95], [-64.5, 33.5], [-65.5, 36.5]].forEach(function (lp) { s.circle(lp[0], lp[1], 0.12, 'o'); s.line(lp[0] - 0.12, lp[1] - 0.12, lp[0] + 0.12, lp[1] + 0.12, 'f'); s.line(lp[0] - 0.12, lp[1] + 0.12, lp[0] + 0.12, lp[1] - 0.12, 'f'); });
     s.room([H.x0 + 0.25, H.z0 + 0.25, H.x1 - 0.25, H.z1 - 0.25], tr(lang, 'Stockage · sous-sol', 'Storage · basement'), '−2,90');
-    s.text(-58.3, 37.75, tr(lang, 'Palettes', 'Pallets'), 'ts'); s.text(-59.8, 37.6, tr(lang, 'Table de tri', 'Sorting table'), 'ts');
-    s.dimH([-69, -68.75, -61.35, -58.55, -55.25, -55], 39, 1.2);
+    s.text(-58.9, 36.05, tr(lang, 'Palettes', 'Pallets'), 'ts'); s.text(-57.25, 37.25, tr(lang, 'Table de tri', 'Sorting table'), 'ts');
+    s.dimH([-69, -68.75, S.x0, S.x1, -55.25, -55], 39, 1.2);
     s.dimH([-69, -55], 39, 2.2);
-    s.dimV([30, 30.25, 34.45, 35.45, 38.75, 39], -69, -0.4);
+    s.dimV([30, 30.25, S.z0, S.z1, 38.75, 39], -69, -0.4);
     return { sh: s, meta: meta(lang, { title: tr(lang, 'Maison · sous-sol', 'House · basement'), sub: tr(lang, 'Stockage enterré ≈ 115 m² · sol −2,90', 'Buried storage ≈ 115 m² · floor −2.90'), scale: 50, scaleTxt: '1/50', bar: 1, code: 'BHF-PL-03', page: '3/5',
       legend: [['w', tr(lang, 'Voile béton coupé', 'Concrete wall, cut')], ['dash', tr(lang, 'Poutre au-dessus', 'Beam above')], ['win', tr(lang, 'Rayonnage', 'Shelving')]] }) };
   }
@@ -3661,7 +3726,7 @@ body.pl-lock { overflow: hidden; }
     Ln(-73, 0, -69, 0, 'gr'); Ln(-55, 0, -51, 0, 'gr');
     R(-69, -3.2, -55, BY, 'w');
     R(-69, -3.2, -68.75, FL, 'w'); R(-55.25, -3.2, -55, FL, 'w');
-    R(-68.75, 0, -61.35, FL, 'w'); R(-58.3, 0, -55.25, FL, 'w');
+    R(-68.75, 0, H.stair.x0, FL, 'w'); R(H.stair.x0 + 2.4, 0, -55.25, FL, 'w');
     R(-69, FL, -68.75, top, 'w'); R(-55.25, FL, -55, top, 'w'); R(-61.6, FL, -61.48, top - 0.25, 'w2');
     R(-69, top - 0.25, -55, top, 'w');
     R(-69, top, -68.75, H.para, 'w'); R(-55.25, top, -55, H.para, 'w');
@@ -3674,7 +3739,7 @@ body.pl-lock { overflow: hidden; }
     Ln(S.x1 + 0.05, BY + 0.95, S.x0 - 0.1, FL + 0.92, 'g2');
     /* vu au-delà : cloison et portes, rayonnages, panneaux solaires, réservoir */
     R(-68.75, FL, -55.25, top - 0.25, 'f');
-    [[-64.5, 0.85], [-62.15, 0.75], [-59.2, 0.85]].forEach(function (d) { R(d[0] - d[1] / 2, FL, d[0] + d[1] / 2, FL + 2.05, 'of'); });
+    H.doors.filter(function (d) { return d.a === 'x' && Math.abs(d.at - 34.26) < 0.1; }).map(function (d) { return [d.c, d.w]; }).forEach(function (d) { R(d[0] - d[1] / 2, FL, d[0] + d[1] / 2, FL + 2.05, 'of'); });
     for (var sh = 0; sh < 4; sh++) { var a = -68.55 + sh * 1.6; R(a, BY, a + 1.4, BY + 2.2, 'f'); [0.6, 1.2, 1.8].forEach(function (yy) { Ln(a, BY + yy, a + 1.4, BY + yy, 'f'); }); }
     for (var p = 0; p < 4; p++) { var px = -67.9 + p * 2.9; Ln(px, top + 1.05, px + 2.5, top + 1.05, 'g2'); Ln(px, top + 0.35, px, top + 1.05, 'f'); Ln(px + 2.5, top + 0.35, px + 2.5, top + 1.05, 'f'); }
     R(-57.6, top, -55.8, top + 0.6, 'f'); R(-57.45, top + 0.6, -55.95, top + 1.95, 'f');
@@ -3777,8 +3842,8 @@ const TEXTES = {
       poulailler: { k: 'Plus tard', t: 'Poulailler et pondeuses', b: 'Prévu dans une deuxième étape : un poulailler surélevé avec pondoirs, une rampe et un parcours grillagé pour les poules pondeuses. Touche « Démarrage » pour voir la ferme sans lui.' },
       local: { k: 'Zone de vie', t: 'La maison', b: 'Une maison de plain-pied d\'environ 112 m² pour 2 à 3 personnes : véranda, séjour, chambre, salle d\'eau, cuisine et entrée avec l\'escalier du sous-sol. Panneaux solaires et réservoir sur le toit-terrasse, gouttières vers la cuve d\'eau de pluie. Active « Coupe de la maison » pour entrer.' },
       interieur: { k: 'Maison en coupe', t: 'L\'intérieur', b: 'Les murs sont coupés à 1 m du sol pour voir les pièces : lit double et armoire, douche vitrée, cuisine équipée avec sa table, séjour avec canapé et télé. Les arcs au sol montrent le sens d\'ouverture des portes, comme sur un plan d\'architecte.' },
-      soussol: { k: 'Sous la maison', t: 'Sous-sol de stockage', b: 'Le plancher du hall est découpé pour montrer le sous-sol, à 2,90 m sous le terrain : rayonnages de caisses, palettes, table de tri et éclairage au plafond. Il s\'étend sous toute la maison, sans rien qui se voie dehors.' },
-      escalier: { k: 'Sous la maison', t: 'L\'escalier', b: 'Un escalier droit en bois de 11 marches part du hall, au niveau du séjour, et descend au sous-sol, avec une main courante de chaque côté.' },
+      soussol: { k: 'Sous la maison', t: 'Sous-sol de stockage', b: 'Une partie du hall et le terrain devant la maison sont découpés pour montrer le sous-sol, à 2,90 m sous le terrain : rayonnages de caisses, palettes, table de tri, congélateurs et éclairage au plafond. Il s\'étend sous toute la maison, sans rien qui se voie dehors.' },
+      escalier: { k: 'Sous la maison', t: 'L\'escalier', b: 'Un escalier droit en bois de 11 marches part du palier de l\'entrée, juste à côté du passage du séjour et devant la porte de la cuisine, puis descend au sous-sol, avec une main courante de chaque côté.' },
       congelateur: { k: 'Sous la maison', t: 'Congélateurs', b: 'Contre le mur du sous-sol : un congélateur coffre (ouvert ici, avec les caisses de récolte) et une armoire congélateur. Les récoltes passent directement au froid, à l\'abri des regards.' },
       repos: { k: 'Zone de vie', t: 'Espace repos', b: 'À l\'ombre du grand cerisier : un hamac, une natte, un banc et de quoi préparer l\'attaya. Le coin pour souffler entre deux récoltes.' },
       cerisier: { k: 'Zone de vie', t: 'Le grand cerisier', b: 'Un grand arbre d\'ombre chargé de cerises au-dessus de l\'espace repos. À savoir : le cerisier d\'Europe a besoin d\'hivers froids et ne donnera pas de fruits à Kébémer. Pour de vraies cerises sous ce climat, l\'acérola (cerise des Antilles) est une bonne piste ; pour une grande ombre, un manguier ou un flamboyant.' },
@@ -3829,8 +3894,8 @@ const TEXTES = {
       poulailler: { k: 'Later', t: 'Chicken coop and laying hens', b: 'Planned for a second stage: a raised coop with nest boxes, a ramp and a fenced run for laying hens. Tap "Start-up" to see the farm without it.' },
       local: { k: 'Living area', t: 'The house', b: 'A single-storey house of about 112 m² for 2 to 3 people: veranda, living room, bedroom, shower room, kitchen and a hall with the basement stairs. Solar panels and a water tank on the flat roof, gutters to the rainwater tank. Turn on "House cutaway" to step inside.' },
       interieur: { k: 'House cutaway', t: 'Inside', b: 'Walls are cut 1 m above the floor so you can see the rooms: double bed and wardrobe, glass shower, fitted kitchen with its table, living room with sofa and TV. The arcs on the floor show which way each door opens, like on an architect\'s plan.' },
-      soussol: { k: 'Below the house', t: 'Storage basement', b: 'The hall floor is cut away to show the basement, 2.9 m below ground: crate shelves, pallets, a sorting table and ceiling lights. It runs under the whole house, with nothing visible outside.' },
-      escalier: { k: 'Below the house', t: 'The stairs', b: 'A straight wooden flight of 11 steps leaves the hall, at living-room level, and goes down to the basement, with a handrail on each side.' },
+      soussol: { k: 'Below the house', t: 'Storage basement', b: 'Part of the hall and the ground in front of the house are cut away to show the basement, 2.9 m below ground: crate shelves, pallets, a sorting table, freezers and ceiling lights. It runs under the whole house, with nothing visible outside.' },
+      escalier: { k: 'Below the house', t: 'The stairs', b: 'A straight wooden flight of 11 steps starts from the entrance landing, next to the living-room opening and in front of the kitchen door, and goes down to the basement, with a handrail on each side.' },
       congelateur: { k: 'Below the house', t: 'Freezers', b: 'Against the basement wall: a chest freezer (open here, with harvest crates) and an upright freezer. The harvest goes straight into the cold, out of sight.' },
       repos: { k: 'Living area', t: 'Rest area', b: 'In the shade of the big cherry tree: a hammock, a mat, a bench and everything for attaya tea. The spot to catch your breath between harvests.' },
       cerisier: { k: 'Living area', t: 'The big cherry tree', b: 'A big shade tree loaded with cherries above the rest area. Good to know: the European cherry needs cold winters and will not fruit in Kébémer. For real cherries in this climate, acerola (Barbados cherry) is a good lead; for big shade, a mango tree or a flamboyant.' },
